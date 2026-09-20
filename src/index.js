@@ -3,6 +3,7 @@ import { JevClient } from './jev.js';
 import { DataAdapter } from './adapters.js';
 import { Executor } from './executor.js';
 import { formatTable, formatCSV, parseCSV } from './utils.js';
+import { pipelineToSQL, isPipelineQuery } from './pipeline.js';
 
 class JevQLDatabase {
   constructor(initialData = null, options = {}) {
@@ -27,17 +28,20 @@ class JevQLDatabase {
     return this;
   }
 
-  async query(sql, data = null) {
+  async query(queryText, data = null) {
+    const sql = isPipelineQuery(queryText) ? pipelineToSQL(queryText) : queryText;
     const ast = parse(sql);
     return this.executor.execute(ast, data);
   }
 
-  async explain(sql, data = null) {
+  async explain(queryText, data = null) {
+    const sql = isPipelineQuery(queryText) ? pipelineToSQL(queryText) : queryText;
     const ast = parse(sql.startsWith('EXPLAIN') ? sql : `EXPLAIN ${sql}`);
     return this.executor.execute(ast, data);
   }
 
-  async analyze(sql, data = null) {
+  async analyze(queryText, data = null) {
+    const sql = isPipelineQuery(queryText) ? pipelineToSQL(queryText) : queryText;
     const ast = parse(`EXPLAIN ANALYZE ${sql.replace(/^EXPLAIN\s+(ANALYZE\s+)?/i, '')}`);
     return this.executor.execute(ast, data);
   }
@@ -49,24 +53,19 @@ class JevQLDatabase {
 
 /**
  * Main jevql function - adapts dynamically based on arguments.
- *
- * 1. Direct query:
- *    await jevql('SELECT * FROM "tickets.json" WHERE NOUL(text, "Urgent?") > 0.8');
- *    await jevql('SELECT name, CHOICE(text, "Cat", ["a", "b"]) FROM data', rows);
- *
- * 2. Database instance:
- *    const db = jevql(dataArray);
- *    const results = await db.query('SELECT ...');
- *
- * 3. Curried query:
- *    const filterUrgent = jevql('SELECT * FROM data WHERE NOUL(text, "Urgent?") > 0.8');
- *    const urgentTickets = await filterUrgent(tickets);
  */
 export default function jevql(firstArg, secondArg = null, options = {}) {
-  // Case 1: jevql(sql, data, options)
-  if (typeof firstArg === 'string' && (firstArg.trim().toUpperCase().startsWith('SELECT') || firstArg.trim().toUpperCase().startsWith('EXPLAIN'))) {
+  // Check if firstArg is a query (either SQL or Pipeline)
+  const isQuery = typeof firstArg === 'string' && (
+    firstArg.trim().toUpperCase().startsWith('SELECT') ||
+    firstArg.trim().toUpperCase().startsWith('EXPLAIN') ||
+    isPipelineQuery(firstArg)
+  );
+
+  if (isQuery) {
+    const sql = isPipelineQuery(firstArg) ? pipelineToSQL(firstArg) : firstArg;
+
     if (secondArg != null && !Array.isArray(secondArg) && typeof secondArg === 'object' && !secondArg[0] && !secondArg.length) {
-      // secondArg might be options if no data provided
       if (secondArg.apiKey || secondArg.cache !== undefined || secondArg.concurrency) {
         options = secondArg;
         secondArg = null;
@@ -75,21 +74,21 @@ export default function jevql(firstArg, secondArg = null, options = {}) {
 
     if (secondArg != null) {
       const db = new JevQLDatabase(secondArg, options);
-      return db.query(firstArg);
+      return db.query(sql);
     }
 
-    const ast = parse(firstArg);
+    const ast = parse(sql);
     // If the query explicitly specifies a file source (e.g. FROM "tickets.json"), execute immediately
     if (ast.from?.source?.type === 'FileSource') {
       const db = new JevQLDatabase(null, options);
-      return db.query(firstArg);
+      return db.query(sql);
     }
 
     // Otherwise, return a curried query function
     return async (data, callOptions = {}) => {
       const mergedOpts = { ...options, ...callOptions };
       const db = new JevQLDatabase(data, mergedOpts);
-      return db.query(firstArg);
+      return db.query(sql);
     };
   }
 

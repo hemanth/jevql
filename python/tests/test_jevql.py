@@ -22,6 +22,17 @@ class TestJevQL(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["id"], "T-1")
 
+    def test_pipeline_query(self):
+        pipe = """
+            from data
+            | filter status == 'open'
+            | classify body -> ['billing', 'tech'] as dept
+            | judge body ? 'Technical outage?' as is_outage > 0.5
+        """
+        rows = jevql(pipe, self.tickets)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["id"], "T-1")
+
     def test_pushdown_pruning(self):
         db = JevQLDatabase(self.tickets)
         res = db.analyze("""

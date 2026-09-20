@@ -12,6 +12,7 @@ export class Executor {
   evalLiteral(node) {
     if (!node) return null;
     if (node.type === 'Literal') return node.value;
+    if (node.type === 'Identifier') return node.name;
     if (node.type === 'ArrayLiteral') {
       return node.elements.map(e => this.evalLiteral(e));
     }

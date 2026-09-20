@@ -44,10 +44,8 @@ async function runBenchmark() {
   const inTreeTime = t1_inTree - t0_inTree;
 
   // Test 2: Live TypeSafe Jev System One with Pushdown & Speculative Fan-out
-  console.log(`[2/3] Benchmarking JevQL Speculative Fan-out + Relational Pushdown (TypeSafe Jev)...`);
-  // Use a subset of 20 golden rows for the live network test to respect test budgets
-  const evalSubset = dataset.slice(0, 20);
-  const liveDb = jevql(evalSubset, { cache: false, concurrency: 5 });
+  console.log(`[2/3] Benchmarking JevQL Speculative Fan-out + Relational Pushdown on FULL N=100 dataset...`);
+  const liveDb = jevql(dataset, { cache: false, concurrency: 8 });
 
   const t0_live = performance.now();
   const liveAnalysis = await liveDb.analyze(`
@@ -74,7 +72,7 @@ async function runBenchmark() {
 
   // Test 3: Cached Re-execution (Memoization Latency)
   console.log(`[3/3] Benchmarking JevQL Cache Hit Latency (SHA-256 Memoization)...`);
-  const cachedDb = jevql(evalSubset, { cache: true });
+  const cachedDb = jevql(dataset, { cache: true });
   // Prime cache
   await cachedDb.query(`
     SELECT id, CHOICE(message, 'Intent', ${JSON.stringify(candidates)}) AS predicted_intent

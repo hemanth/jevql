@@ -152,6 +152,77 @@ class JevClient:
         return answers
 
 
+def is_pipeline_query(query_str: str) -> bool:
+    if not isinstance(query_str, str):
+        return False
+    s = query_str.strip().lower()
+    return s.startswith("from ") or " | " in query_str or "\n|" in query_str
+
+
+def pipeline_to_sql(pipe_str: str) -> str:
+    pipes = [p.strip() for p in pipe_str.split("|") if p.strip()]
+    source = "data"
+    filters = []
+    enrichments = []
+    group_by = []
+    aggregates = []
+    order_by = []
+    limit = None
+
+    for p in pipes:
+        if re.match(r"^from\s+", p, re.IGNORECASE):
+            source = re.sub(r"^from\s+", "", p, flags=re.IGNORECASE).strip()
+        elif re.match(r"^judge\s+", p, re.IGNORECASE):
+            m = re.match(r"^judge\s+(\w+)\s*\?\s*['\"]([^'\"]+)['\"](?:\s+as\s+(\w+))?(?:\s*(>|<|>=|<=)\s*([0-9\.]+))?", p, re.IGNORECASE)
+            if m:
+                col, prompt, alias, op, thresh = m.groups()
+                out_alias = alias or f"is_{col}"
+                enrichments.append({"type": "NOUL", "col": col, "prompt": prompt, "alias": out_alias})
+                if op and thresh:
+                    filters.append(f"NOUL({col}, '{prompt}') {op} {thresh}")
+        elif re.match(r"^classify\s+", p, re.IGNORECASE):
+            m = re.match(r"^classify\s+(\w+)\s*->\s*(\[.*?\]|\{.*?\})\s+as\s+(\w+)", p, re.IGNORECASE)
+            if m:
+                col, crit, alias = m.groups()
+                enrichments.append({"type": "CHOICE", "col": col, "prompt": f"Classify {alias}", "criteria": crit, "alias": alias})
+        elif re.match(r"^score\s+", p, re.IGNORECASE):
+            m = re.match(r"^score\s+(\w+)\s*~>\s*(\[.*?\])\s+as\s+(\w+)", p, re.IGNORECASE)
+            if m:
+                col, crit, alias = m.groups()
+                enrichments.append({"type": "SCORE", "col": col, "prompt": f"Rate {alias}", "criteria": crit, "alias": alias})
+        elif re.match(r"^filter\s+", p, re.IGNORECASE):
+            cond = re.sub(r"^filter\s+", "", p, flags=re.IGNORECASE).strip().replace("==", "=")
+            filters.append(cond)
+        elif re.match(r"^group\s+", p, re.IGNORECASE):
+            group_by = [x.strip() for x in re.sub(r"^group\s+(by\s+)?", "", p, flags=re.IGNORECASE).split(",")]
+        elif re.match(r"^(aggregate|agg)\s+", p, re.IGNORECASE):
+            aggregates = [x.strip() for x in re.sub(r"^(aggregate|agg)\s+", "", p, flags=re.IGNORECASE).split(",")]
+        elif re.match(r"^sort\s+", p, re.IGNORECASE):
+            order_by = [x.strip() for x in re.sub(r"^sort\s+(by\s+)?", "", p, flags=re.IGNORECASE).split(",")]
+        elif re.match(r"^(take|limit)\s+", p, re.IGNORECASE):
+            limit = re.sub(r"^(take|limit)\s+", "", p, flags=re.IGNORECASE).strip()
+
+    select_cols = ["*"]
+    for enr in enrichments:
+        if enr["type"] == "NOUL":
+            select_cols.append(f"NOUL({enr['col']}, '{enr['prompt']}') AS {enr['alias']}")
+        elif enr["type"] == "CHOICE":
+            select_cols.append(f"CHOICE({enr['col']}, '{enr['prompt']}', {enr['criteria']}) AS {enr['alias']}")
+        elif enr["type"] == "SCORE":
+            select_cols.append(f"SCORE({enr['col']}, '{enr['prompt']}', {enr['criteria']}) AS {enr['alias']}")
+
+    sql = f"SELECT {', '.join(select_cols)} FROM {source}"
+    if filters:
+        sql += f" WHERE {' AND '.join(filters)}"
+    if group_by:
+        sql += f" GROUP BY {', '.join(group_by)}"
+    if order_by:
+        sql += f" ORDER BY {', '.join(order_by)}"
+    if limit:
+        sql += f" LIMIT {limit}"
+    return sql
+
+
 class JevQLDatabase:
     """Queryable In-Memory JevQL Database."""
     def __init__(self, data: Optional[Union[List[Dict[str, Any]], Dict[str, List[Dict[str, Any]]]]] = None, **options):
@@ -179,7 +250,8 @@ class JevQLDatabase:
         return self._execute(sql, data, analyze=True)
 
     def _execute(self, sql: str, data: Optional[List[Dict[str, Any]]] = None, analyze: bool = False) -> Any:
-        # Simple regex-based SQL execution pipeline for pure Python parity
+        if is_pipeline_query(sql):
+            sql = pipeline_to_sql(sql)
         clean_sql = " ".join(sql.strip().split())
 
         # Extract table
@@ -340,7 +412,9 @@ class JevQLDatabase:
 
 def jevql(sql_or_data: Any, data: Optional[List[Dict[str, Any]]] = None, **options) -> Any:
     """Main jevql entry point."""
-    if isinstance(sql_or_data, str) and sql_or_data.strip().upper().startswith(("SELECT", "EXPLAIN")):
-        db = JevQLDatabase(data, **options)
-        return db.query(sql_or_data, data)
+    if isinstance(sql_or_data, str):
+        s = sql_or_data.strip().upper()
+        if s.startswith(("SELECT", "EXPLAIN")) or is_pipeline_query(sql_or_data):
+            db = JevQLDatabase(data, **options)
+            return db.query(sql_or_data, data)
     return JevQLDatabase(sql_or_data, **options)
