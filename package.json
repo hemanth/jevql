@@ -17,6 +17,8 @@
   },
   "scripts": {
     "test": "node --test test/*.test.js",
+    "test:py": "PYTHONPATH=python python3 -m unittest discover -s python/tests",
+    "bench": "node bench/run_bench.mjs",
     "demo": "node examples/basic.js",
     "playground": "node serve-playground.mjs"
   },

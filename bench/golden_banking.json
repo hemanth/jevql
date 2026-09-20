@@ -1,0 +1,2002 @@
+[
+  {
+    "id": "BANK-1000",
+    "customer": "Cust_1000",
+    "status": "closed",
+    "tier": "enterprise",
+    "message": "How do I locate my card?",
+    "expected_intent": "card_arrival",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1001",
+    "customer": "Cust_1001",
+    "status": "open",
+    "tier": "standard",
+    "message": "I still have not received my new card, I ordered over a week ago.",
+    "expected_intent": "card_arrival",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1002",
+    "customer": "Cust_1002",
+    "status": "open",
+    "tier": "premium",
+    "message": "I ordered a card but it has not arrived. Help please!",
+    "expected_intent": "card_arrival",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1003",
+    "customer": "Cust_1003",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "Is there a way to know when my card will arrive?",
+    "expected_intent": "card_arrival",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1004",
+    "customer": "Cust_1004",
+    "status": "closed",
+    "tier": "premium",
+    "message": "My card has not arrived yet.",
+    "expected_intent": "card_arrival",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1005",
+    "customer": "Cust_1005",
+    "status": "open",
+    "tier": "standard",
+    "message": "When will I get my card?",
+    "expected_intent": "card_arrival",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1006",
+    "customer": "Cust_1006",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "Do you know if there is a tracking number for the new card you sent me?",
+    "expected_intent": "card_arrival",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1007",
+    "customer": "Cust_1007",
+    "status": "open",
+    "tier": "standard",
+    "message": "i have not received my card",
+    "expected_intent": "card_arrival",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1008",
+    "customer": "Cust_1008",
+    "status": "closed",
+    "tier": "premium",
+    "message": "still waiting on that card",
+    "expected_intent": "card_arrival",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1009",
+    "customer": "Cust_1009",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "Is it normal to have to wait over a week for my new card?",
+    "expected_intent": "card_arrival",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1010",
+    "customer": "Cust_1010",
+    "status": "open",
+    "tier": "premium",
+    "message": "I need to know your exchange rates.",
+    "expected_intent": "exchange_rate",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1011",
+    "customer": "Cust_1011",
+    "status": "open",
+    "tier": "standard",
+    "message": "What exchange rates do you offer?",
+    "expected_intent": "exchange_rate",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1012",
+    "customer": "Cust_1012",
+    "status": "closed",
+    "tier": "enterprise",
+    "message": "How did you come up with your exchange rates?",
+    "expected_intent": "exchange_rate",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1013",
+    "customer": "Cust_1013",
+    "status": "open",
+    "tier": "standard",
+    "message": "Where do you guys acquire your exchange rate?",
+    "expected_intent": "exchange_rate",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1014",
+    "customer": "Cust_1014",
+    "status": "open",
+    "tier": "premium",
+    "message": "How do I find the exchange rate?",
+    "expected_intent": "exchange_rate",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1015",
+    "customer": "Cust_1015",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "What are your international exchange rates?",
+    "expected_intent": "exchange_rate",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1016",
+    "customer": "Cust_1016",
+    "status": "closed",
+    "tier": "premium",
+    "message": "How often do your exchange rates change",
+    "expected_intent": "exchange_rate",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1017",
+    "customer": "Cust_1017",
+    "status": "open",
+    "tier": "standard",
+    "message": "Please advise what is the exchange rate",
+    "expected_intent": "exchange_rate",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1018",
+    "customer": "Cust_1018",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "How are exchange rates calculated?",
+    "expected_intent": "exchange_rate",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1019",
+    "customer": "Cust_1019",
+    "status": "open",
+    "tier": "standard",
+    "message": "what are exchange rates based on",
+    "expected_intent": "exchange_rate",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1020",
+    "customer": "Cust_1020",
+    "status": "closed",
+    "tier": "premium",
+    "message": "When traveling, can I auto top-up my card at certain times?",
+    "expected_intent": "automatic_top_up",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1021",
+    "customer": "Cust_1021",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "Is there a limit when using auto top-up?",
+    "expected_intent": "automatic_top_up",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1022",
+    "customer": "Cust_1022",
+    "status": "open",
+    "tier": "premium",
+    "message": "Will it automatically top-up or do I need to do that manually if there isn't much cash left?",
+    "expected_intent": "automatic_top_up",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1023",
+    "customer": "Cust_1023",
+    "status": "open",
+    "tier": "standard",
+    "message": "I'm running out of money, can I  auto top up?",
+    "expected_intent": "automatic_top_up",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1024",
+    "customer": "Cust_1024",
+    "status": "closed",
+    "tier": "enterprise",
+    "message": "How do I use auto top up?",
+    "expected_intent": "automatic_top_up",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1025",
+    "customer": "Cust_1025",
+    "status": "open",
+    "tier": "standard",
+    "message": "Can it automatically top-up money if there isn't much left?",
+    "expected_intent": "automatic_top_up",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1026",
+    "customer": "Cust_1026",
+    "status": "open",
+    "tier": "premium",
+    "message": "If there isn't much money left can it automatically top-up?",
+    "expected_intent": "automatic_top_up",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1027",
+    "customer": "Cust_1027",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "I read about the auto-top up function, but can't find it in the app.",
+    "expected_intent": "automatic_top_up",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1028",
+    "customer": "Cust_1028",
+    "status": "closed",
+    "tier": "premium",
+    "message": "Can I have it add money at certain time intervals when I travel?",
+    "expected_intent": "automatic_top_up",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1029",
+    "customer": "Cust_1029",
+    "status": "open",
+    "tier": "standard",
+    "message": "I'm going to be away for awhile, can I have it add money automatically in certain intervals?",
+    "expected_intent": "automatic_top_up",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1030",
+    "customer": "Cust_1030",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "My entire gym bag, including my wallet, was stolen out of my locker today. Everything in my wallet is gone - how do I block the card to make it can't be used?",
+    "expected_intent": "lost_or_stolen_card",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1031",
+    "customer": "Cust_1031",
+    "status": "open",
+    "tier": "standard",
+    "message": "I can't find my card and think it may have been stolen.",
+    "expected_intent": "lost_or_stolen_card",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1032",
+    "customer": "Cust_1032",
+    "status": "closed",
+    "tier": "premium",
+    "message": "Someone stole my card. I need to report it stolen. I made a police report already, but how do I report it with you?",
+    "expected_intent": "lost_or_stolen_card",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1033",
+    "customer": "Cust_1033",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "I cant find my card, it's gone.",
+    "expected_intent": "lost_or_stolen_card",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1034",
+    "customer": "Cust_1034",
+    "status": "open",
+    "tier": "premium",
+    "message": "My card is lost! What can I do?",
+    "expected_intent": "lost_or_stolen_card",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1035",
+    "customer": "Cust_1035",
+    "status": "open",
+    "tier": "standard",
+    "message": "I lost my card",
+    "expected_intent": "lost_or_stolen_card",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1036",
+    "customer": "Cust_1036",
+    "status": "closed",
+    "tier": "enterprise",
+    "message": "Oh no!  I lost my card!  Help!",
+    "expected_intent": "lost_or_stolen_card",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1037",
+    "customer": "Cust_1037",
+    "status": "open",
+    "tier": "standard",
+    "message": "I believe my card has been stolen, what can I do about this situation? It's urgent.",
+    "expected_intent": "lost_or_stolen_card",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1038",
+    "customer": "Cust_1038",
+    "status": "open",
+    "tier": "premium",
+    "message": "Help! Someone stole my card!",
+    "expected_intent": "lost_or_stolen_card",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1039",
+    "customer": "Cust_1039",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "Help.  I have a stolen card!",
+    "expected_intent": "lost_or_stolen_card",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1040",
+    "customer": "Cust_1040",
+    "status": "closed",
+    "tier": "premium",
+    "message": "How do I get my PIN unlocked?",
+    "expected_intent": "pin_blocked",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1041",
+    "customer": "Cust_1041",
+    "status": "open",
+    "tier": "standard",
+    "message": "Where can I view my PIN?",
+    "expected_intent": "pin_blocked",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1042",
+    "customer": "Cust_1042",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "Will you reinstate my PIN?",
+    "expected_intent": "pin_blocked",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1043",
+    "customer": "Cust_1043",
+    "status": "open",
+    "tier": "standard",
+    "message": "I accidentally blocked my PIN. How do I reset it?",
+    "expected_intent": "pin_blocked",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1044",
+    "customer": "Cust_1044",
+    "status": "closed",
+    "tier": "premium",
+    "message": "How do I unblock my pin after entering it wrong too many times?",
+    "expected_intent": "pin_blocked",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1045",
+    "customer": "Cust_1045",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "I used the wrong ping too many times and now the account is blocked.  How do I unblock?",
+    "expected_intent": "pin_blocked",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1046",
+    "customer": "Cust_1046",
+    "status": "open",
+    "tier": "premium",
+    "message": "I need help because I drunken blocked my card?",
+    "expected_intent": "pin_blocked",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1047",
+    "customer": "Cust_1047",
+    "status": "open",
+    "tier": "standard",
+    "message": "How do I reset my PIN, I can't seem to use my card?",
+    "expected_intent": "pin_blocked",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1048",
+    "customer": "Cust_1048",
+    "status": "closed",
+    "tier": "enterprise",
+    "message": "When I put the wrong pin too much, I got blocked, so can you help me unblock my pin",
+    "expected_intent": "pin_blocked",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1049",
+    "customer": "Cust_1049",
+    "status": "open",
+    "tier": "standard",
+    "message": "My pin was blocked, how do I make it so I can use it?",
+    "expected_intent": "pin_blocked",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1050",
+    "customer": "Cust_1050",
+    "status": "open",
+    "tier": "premium",
+    "message": "I made a transaction this morning and would like to revert it.",
+    "expected_intent": "cancel_transfer",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1051",
+    "customer": "Cust_1051",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "Can i cancel a charge?",
+    "expected_intent": "cancel_transfer",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1052",
+    "customer": "Cust_1052",
+    "status": "closed",
+    "tier": "premium",
+    "message": "Can I cancel my transaction?",
+    "expected_intent": "cancel_transfer",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1053",
+    "customer": "Cust_1053",
+    "status": "open",
+    "tier": "standard",
+    "message": "I made a transaction but did it to the wrong account.",
+    "expected_intent": "cancel_transfer",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1054",
+    "customer": "Cust_1054",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "Tell me how to cancel a transfer.",
+    "expected_intent": "cancel_transfer",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1055",
+    "customer": "Cust_1055",
+    "status": "open",
+    "tier": "standard",
+    "message": "I need you to cancel a transfer that I made.  It is the wrong account number and the app won't let me stop the transaction.  Please stop it!",
+    "expected_intent": "cancel_transfer",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1056",
+    "customer": "Cust_1056",
+    "status": "closed",
+    "tier": "premium",
+    "message": "I need to cancel my recent transfer immediately, I made a mistake there, please help quickly before it goes through",
+    "expected_intent": "cancel_transfer",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1057",
+    "customer": "Cust_1057",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "I would like to revert a transaction I did this morning",
+    "expected_intent": "cancel_transfer",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1058",
+    "customer": "Cust_1058",
+    "status": "open",
+    "tier": "premium",
+    "message": "If I make a transaction can I cancel it?",
+    "expected_intent": "cancel_transfer",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1059",
+    "customer": "Cust_1059",
+    "status": "open",
+    "tier": "standard",
+    "message": "How can I cancel a transfer?",
+    "expected_intent": "cancel_transfer",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1060",
+    "customer": "Cust_1060",
+    "status": "closed",
+    "tier": "enterprise",
+    "message": "Do all ATMs take this card?",
+    "expected_intent": "atm_support",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1061",
+    "customer": "Cust_1061",
+    "status": "open",
+    "tier": "standard",
+    "message": "Which ATMs accept this card?",
+    "expected_intent": "atm_support",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1062",
+    "customer": "Cust_1062",
+    "status": "open",
+    "tier": "premium",
+    "message": "Where is the closest Mastercard ATM?",
+    "expected_intent": "atm_support",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1063",
+    "customer": "Cust_1063",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "Is there a list of ATM machines?",
+    "expected_intent": "atm_support",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1064",
+    "customer": "Cust_1064",
+    "status": "closed",
+    "tier": "premium",
+    "message": "Are there any specific ATMs that this card can be used at?",
+    "expected_intent": "atm_support",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1065",
+    "customer": "Cust_1065",
+    "status": "open",
+    "tier": "standard",
+    "message": "How do I know which ATMs will accept this card?",
+    "expected_intent": "atm_support",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1066",
+    "customer": "Cust_1066",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "Which ATM's accept my card?",
+    "expected_intent": "atm_support",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1067",
+    "customer": "Cust_1067",
+    "status": "open",
+    "tier": "standard",
+    "message": "Is there any nearby ATM's?",
+    "expected_intent": "atm_support",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1068",
+    "customer": "Cust_1068",
+    "status": "closed",
+    "tier": "premium",
+    "message": "Where are the locations of ATMs that accept this card?",
+    "expected_intent": "atm_support",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1069",
+    "customer": "Cust_1069",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "Which ATMs accept this placard ?",
+    "expected_intent": "atm_support",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1070",
+    "customer": "Cust_1070",
+    "status": "open",
+    "tier": "premium",
+    "message": "The refund isn't showing up on my account.",
+    "expected_intent": "Refund_not_showing_up",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1071",
+    "customer": "Cust_1071",
+    "status": "open",
+    "tier": "standard",
+    "message": "My refund is missing from my statement.",
+    "expected_intent": "Refund_not_showing_up",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1072",
+    "customer": "Cust_1072",
+    "status": "closed",
+    "tier": "enterprise",
+    "message": "I requested a refund, and never received it. What can I do?",
+    "expected_intent": "Refund_not_showing_up",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1073",
+    "customer": "Cust_1073",
+    "status": "open",
+    "tier": "standard",
+    "message": "I was supposed to get a purchase refunded but I don't see the money in my account",
+    "expected_intent": "Refund_not_showing_up",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1074",
+    "customer": "Cust_1074",
+    "status": "open",
+    "tier": "premium",
+    "message": "There's a refund missing from my statement",
+    "expected_intent": "Refund_not_showing_up",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1075",
+    "customer": "Cust_1075",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "I need help. I asked for a refund from a merchant a while ago, but I have not gotten my money back. I keep checking my account, but nothing is showing up. What should I do now?",
+    "expected_intent": "Refund_not_showing_up",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1076",
+    "customer": "Cust_1076",
+    "status": "closed",
+    "tier": "premium",
+    "message": "I am awaiting my refund",
+    "expected_intent": "Refund_not_showing_up",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1077",
+    "customer": "Cust_1077",
+    "status": "open",
+    "tier": "standard",
+    "message": "How long does it take for a refund?",
+    "expected_intent": "Refund_not_showing_up",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1078",
+    "customer": "Cust_1078",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "Help! I keep checking my account, but my refund is not showing. I requested that a seller refund my money a while back, but there is no money showing in my account. What can you do for me?",
+    "expected_intent": "Refund_not_showing_up",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1079",
+    "customer": "Cust_1079",
+    "status": "open",
+    "tier": "standard",
+    "message": "Can you tell me why my refund is not showing in my statement?",
+    "expected_intent": "Refund_not_showing_up",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1080",
+    "customer": "Cust_1080",
+    "status": "closed",
+    "tier": "premium",
+    "message": "Is the top up feature available on the Apple Watch?",
+    "expected_intent": "apple_pay_or_google_pay",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1081",
+    "customer": "Cust_1081",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "Can I use the system Google Pay for top-ups?",
+    "expected_intent": "apple_pay_or_google_pay",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1082",
+    "customer": "Cust_1082",
+    "status": "open",
+    "tier": "premium",
+    "message": "My top-up for Google Pay isn't working",
+    "expected_intent": "apple_pay_or_google_pay",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1083",
+    "customer": "Cust_1083",
+    "status": "open",
+    "tier": "standard",
+    "message": "Can I add money with Apple Pay?",
+    "expected_intent": "apple_pay_or_google_pay",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1084",
+    "customer": "Cust_1084",
+    "status": "closed",
+    "tier": "enterprise",
+    "message": "Can I use my Apple Watch to to top up?",
+    "expected_intent": "apple_pay_or_google_pay",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1085",
+    "customer": "Cust_1085",
+    "status": "open",
+    "tier": "standard",
+    "message": "Does Apple Pay give the option to top up?",
+    "expected_intent": "apple_pay_or_google_pay",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1086",
+    "customer": "Cust_1086",
+    "status": "open",
+    "tier": "premium",
+    "message": "Top up on my Google Pay isn't working.",
+    "expected_intent": "apple_pay_or_google_pay",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1087",
+    "customer": "Cust_1087",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "Is it possible to top up with Apple Pay?",
+    "expected_intent": "apple_pay_or_google_pay",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1088",
+    "customer": "Cust_1088",
+    "status": "closed",
+    "tier": "premium",
+    "message": "do i have to setup apple pay to use it",
+    "expected_intent": "apple_pay_or_google_pay",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1089",
+    "customer": "Cust_1089",
+    "status": "open",
+    "tier": "standard",
+    "message": "Can I use Apple Pay to top up?",
+    "expected_intent": "apple_pay_or_google_pay",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1090",
+    "customer": "Cust_1090",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "What can I use to verify my identify?",
+    "expected_intent": "verify_my_identity",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1091",
+    "customer": "Cust_1091",
+    "status": "open",
+    "tier": "standard",
+    "message": "What do you need to verify my identity?",
+    "expected_intent": "verify_my_identity",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1092",
+    "customer": "Cust_1092",
+    "status": "closed",
+    "tier": "premium",
+    "message": "I need to verify my identity, but how do I do that?",
+    "expected_intent": "verify_my_identity",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1093",
+    "customer": "Cust_1093",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "How can I verify my indentity?",
+    "expected_intent": "verify_my_identity",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1094",
+    "customer": "Cust_1094",
+    "status": "open",
+    "tier": "premium",
+    "message": "What is needed to prove my identity?",
+    "expected_intent": "verify_my_identity",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1095",
+    "customer": "Cust_1095",
+    "status": "open",
+    "tier": "standard",
+    "message": "What do you need for my identity check?",
+    "expected_intent": "verify_my_identity",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1096",
+    "customer": "Cust_1096",
+    "status": "closed",
+    "tier": "enterprise",
+    "message": "How do you verify an identity?",
+    "expected_intent": "verify_my_identity",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1097",
+    "customer": "Cust_1097",
+    "status": "open",
+    "tier": "standard",
+    "message": "Is there a specific type you need for identity verification?",
+    "expected_intent": "verify_my_identity",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1098",
+    "customer": "Cust_1098",
+    "status": "open",
+    "tier": "premium",
+    "message": "I got a message that I need to verify my identity; what do I do?",
+    "expected_intent": "verify_my_identity",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  },
+  {
+    "id": "BANK-1099",
+    "customer": "Cust_1099",
+    "status": "open",
+    "tier": "enterprise",
+    "message": "Are there any documents needed for the identity check?",
+    "expected_intent": "verify_my_identity",
+    "candidates": [
+      "card_arrival",
+      "lost_or_stolen_card",
+      "cancel_transfer",
+      "pin_blocked",
+      "Refund_not_showing_up",
+      "apple_pay_or_google_pay",
+      "automatic_top_up",
+      "atm_support",
+      "exchange_rate",
+      "verify_my_identity"
+    ]
+  }
+]
