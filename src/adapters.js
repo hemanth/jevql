@@ -69,6 +69,17 @@ export class DataAdapter {
         }
       }
 
+      // Fallback: If in-memory data was provided (e.g. 'data' or single source), use it
+      const sourceKeys = Object.keys(this.sources);
+      if (sourceKeys.length === 1) {
+        const data = this.sources[sourceKeys[0]];
+        return Array.isArray(data) ? data : [data];
+      }
+      if (this.sources['data']) {
+        const data = this.sources['data'];
+        return Array.isArray(data) ? data : [data];
+      }
+
       throw new Error(`Table or source not found: '${sourceNode.name}'`);
     }
 

@@ -26,6 +26,20 @@ export class Executor {
     return null;
   }
 
+  resolveAutoText(row) {
+    if (typeof row === 'string') return row;
+    if (!row || typeof row !== 'object') return String(row || '');
+    const candidateKeys = ['message', 'body', 'text', 'content', 'description', 'review', 'comment', 'input', 'query', 'summary', 'title'];
+    for (const k of candidateKeys) {
+      const val = getFieldCaseInsensitive(row, k);
+      if (typeof val === 'string' && val.trim().length > 0) return val;
+    }
+    for (const v of Object.values(row)) {
+      if (typeof v === 'string' && v.trim().length > 0) return v;
+    }
+    return row;
+  }
+
   /**
    * Evaluate an expression AST node for a given row and Jev answers.
    */
@@ -51,6 +65,9 @@ export class Executor {
       }
 
       case 'Identifier': {
+        if (node.name === 'auto') {
+          return this.resolveAutoText(row);
+        }
         if (node.table) {
           const tbl = row[node.table];
           if (tbl && typeof tbl === 'object') {
@@ -313,6 +330,9 @@ export class Executor {
           if (qDesc.stateExpr) {
             state = this.evalExpr(qDesc.stateExpr, row);
           }
+          if (state === undefined || state === null) {
+            state = this.resolveAutoText(row);
+          }
           rowQuestions[qDesc.key] = qDesc.question;
         }
 
@@ -320,6 +340,9 @@ export class Executor {
         let stateForCall = row;
         if (plan.questions[0]?.stateExpr) {
           stateForCall = this.evalExpr(plan.questions[0].stateExpr, row);
+        }
+        if (stateForCall === undefined || stateForCall === null) {
+          stateForCall = this.resolveAutoText(row);
         }
 
         batchItems.push({

@@ -152,15 +152,43 @@ class JevClient:
         return answers
 
 
+def resolve_auto_text(row: Any) -> str:
+    if isinstance(row, str):
+        return row
+    if not isinstance(row, dict):
+        return str(row)
+    for k in ["message", "body", "text", "content", "description", "review", "comment", "input", "query", "summary", "title"]:
+        if k in row and isinstance(row[k], str) and row[k].strip():
+            return row[k]
+    for v in row.values():
+        if isinstance(v, str) and v.strip():
+            return v
+    return str(row)
+
+
 def is_pipeline_query(query_str: str) -> bool:
     if not isinstance(query_str, str):
         return False
-    s = query_str.strip().lower()
-    return s.startswith("from ") or " | " in query_str or "\n|" in query_str
+    s = query_str.strip()
+    upper = s.upper()
+    if upper.startswith(("SELECT", "EXPLAIN", "WITH")):
+        return False
+    lower = s.lower()
+    if lower.startswith(("from ", "in ", "use ")) or " | " in s or "\n|" in s:
+        return True
+    lines = [l.strip().lower() for l in s.split("\n") if l.strip()]
+    nl_keywords = ("where ", "filter ", "ask ", "tag ", "label ", "classify ", "score ", "rate ", "top ", "take ", "sort ", "order ", "show ")
+    return any(any(line.startswith(kw) for kw in nl_keywords) for line in lines)
 
 
 def pipeline_to_sql(pipe_str: str) -> str:
-    pipes = [p.strip() for p in pipe_str.split("|") if p.strip()]
+    is_piped = "|" in pipe_str
+    if is_piped:
+        stages = [p.strip() for p in pipe_str.split("|") if p.strip()]
+    else:
+        stages = [re.sub(r"^([#]|--).*$", "", p).strip() for p in pipe_str.split("\n")]
+        stages = [p for p in stages if p]
+
     source = "data"
     filters = []
     enrichments = []
@@ -169,38 +197,107 @@ def pipeline_to_sql(pipe_str: str) -> str:
     order_by = []
     limit = None
 
-    for p in pipes:
-        if re.match(r"^from\s+", p, re.IGNORECASE):
-            source = re.sub(r"^from\s+", "", p, flags=re.IGNORECASE).strip()
-        elif re.match(r"^judge\s+", p, re.IGNORECASE):
+    def normalize_cond(c: str) -> str:
+        c = re.sub(r"^(where|filter|and)\s+", "", c, flags=re.IGNORECASE).strip()
+        # status is not closed -> status != 'closed'
+        c = re.sub(
+            r"(\w+)\s+is\s+not\s+([^\s]+)",
+            lambda m: f"{m.group(1)} != {m.group(2) if re.match(r'^[\'\"]|^[0-9\.]+|^(true|false|null)$', m.group(2), re.IGNORECASE) else f'\'{m.group(2)}\''}",
+            c,
+            flags=re.IGNORECASE
+        )
+        # status is open -> status = 'open'
+        c = re.sub(
+            r"(\w+)\s+is\s+([^\s]+)",
+            lambda m: f"{m.group(1)} = {m.group(2) if re.match(r'^[\'\"]|^[0-9\.]+|^(true|false|null)$', m.group(2), re.IGNORECASE) else f'\'{m.group(2)}\''}",
+            c,
+            flags=re.IGNORECASE
+        )
+        c = c.replace("==", "=")
+        return c
+
+    for idx, p in enumerate(stages):
+        if re.match(r"^(from|in|use)\s+", p, re.IGNORECASE):
+            source = re.sub(r"^(from|in|use)\s+", "", p, flags=re.IGNORECASE).strip()
+        elif re.match(r"^(ask|check|judge)\s+", p, re.IGNORECASE) or re.match(r"^judge\s+\w+\s*\?", p, re.IGNORECASE):
             m = re.match(r"^judge\s+(\w+)\s*\?\s*['\"]([^'\"]+)['\"](?:\s+as\s+(\w+))?(?:\s*(>|<|>=|<=)\s*([0-9\.]+))?", p, re.IGNORECASE)
+            if not m:
+                m = re.match(r"^(?:ask|check)\s+(?:(\w+)\s+)?['\"]([^'\"]+)['\"](?:\s+as\s+(\w+))?(?:\s*(>|<|>=|<=)\s*([0-9\.]+))?", p, re.IGNORECASE)
             if m:
                 col, prompt, alias, op, thresh = m.groups()
-                out_alias = alias or f"is_{col}"
-                enrichments.append({"type": "NOUL", "col": col, "prompt": prompt, "alias": out_alias})
+                target_col = col or "auto"
+                words = re.findall(r"\w+", prompt)
+                default_alias = f"is_{'_'.join(words[:3]).lower()}" if words else "is_question"
+                out_alias = alias or default_alias
+                enrichments.append({"type": "NOUL", "col": target_col, "prompt": prompt, "alias": out_alias})
                 if op and thresh:
-                    filters.append(f"NOUL({col}, '{prompt}') {op} {thresh}")
-        elif re.match(r"^classify\s+", p, re.IGNORECASE):
-            m = re.match(r"^classify\s+(\w+)\s*->\s*(\[.*?\]|\{.*?\})\s+as\s+(\w+)", p, re.IGNORECASE)
-            if m:
+                    filters.append(f"NOUL({target_col}, '{prompt}') {op} {thresh}")
+        elif re.match(r"^(tag|label|classify|categorize|pick)\s+", p, re.IGNORECASE):
+            m = re.match(r"^(?:classify|tag)\s+(\w+)\s*->\s*(\[.*?\]|\{.*?\})\s+as\s+(\w+)", p, re.IGNORECASE)
+            if not m:
+                m = re.match(r"^(?:tag|label|classify|categorize|pick)\s+(?:(\w+)\s+)?(?:as|from|:\s*)\s*(?:\[([^\]]+)\]|([^\n\r]+?))(?:\s+as\s+(\w+))?$", p, re.IGNORECASE)
+                if m:
+                    explicit_col, opts_bracket, opts_plain, alias = m.groups()
+                    opts_str = opts_bracket or opts_plain
+                    opts = [s.strip().strip("'\"`") for s in opts_str.split(",") if s.strip()]
+                    crit = "[" + ", ".join(f"'{o}'" for o in opts) + "]"
+                    target_col = explicit_col or "auto"
+                    target_alias = alias or ("tag" if p.lower().startswith("tag") else "category")
+                    enrichments.append({"type": "CHOICE", "col": target_col, "prompt": f"Classify {target_alias}", "criteria": crit, "alias": target_alias})
+            else:
                 col, crit, alias = m.groups()
                 enrichments.append({"type": "CHOICE", "col": col, "prompt": f"Classify {alias}", "criteria": crit, "alias": alias})
-        elif re.match(r"^score\s+", p, re.IGNORECASE):
+        elif re.match(r"^(score|rate)\s+", p, re.IGNORECASE):
             m = re.match(r"^score\s+(\w+)\s*~>\s*(\[.*?\])\s+as\s+(\w+)", p, re.IGNORECASE)
-            if m:
+            if not m:
+                m = re.match(r"^(?:score|rate)\s+(?:(\w+)\s+)?(?:as|:\s*)\s*(?:\[([^\]]+)\]|([^\n\r]+?))(?:\s+as\s+(\w+))?$", p, re.IGNORECASE)
+                if m:
+                    explicit_col, lvls_bracket, lvls_plain, alias = m.groups()
+                    lvls_str = lvls_bracket or lvls_plain
+                    lvls = [s.strip().strip("'\"`") for s in lvls_str.split(",") if s.strip()]
+                    crit = "[" + ", ".join(f"'{l}'" for l in lvls) + "]"
+                    target_col = explicit_col or "auto"
+                    target_alias = alias or "score"
+                    enrichments.append({"type": "SCORE", "col": target_col, "prompt": f"Rate {target_alias}", "criteria": crit, "alias": target_alias})
+            else:
                 col, crit, alias = m.groups()
                 enrichments.append({"type": "SCORE", "col": col, "prompt": f"Rate {alias}", "criteria": crit, "alias": alias})
-        elif re.match(r"^filter\s+", p, re.IGNORECASE):
-            cond = re.sub(r"^filter\s+", "", p, flags=re.IGNORECASE).strip().replace("==", "=")
-            filters.append(cond)
+        elif re.match(r"^(top|take|limit|first)\s+", p, re.IGNORECASE):
+            m = re.match(r"^(?:top|take|limit|first)\s+(\d+)(?:\s+by\s+(.+))?", p, re.IGNORECASE)
+            if m:
+                limit = m.group(1)
+                if m.group(2):
+                    sf = m.group(2).strip()
+                    if re.search(r"(\bdesc|\basc)$", sf, re.IGNORECASE):
+                        order_by.append(sf.upper())
+                    else:
+                        order_by.append(f"{sf} DESC")
+        elif re.match(r"^(sort|order)\s+", p, re.IGNORECASE):
+            items = re.sub(r"^(sort|order)\s+(by\s+)?", "", p, flags=re.IGNORECASE).split(",")
+            for it in items:
+                it = it.strip()
+                if it.startswith("-"):
+                    order_by.append(f"{it[1:]} DESC")
+                elif it.startswith("+"):
+                    order_by.append(f"{it[1:]} ASC")
+                elif re.search(r"\s+(desc|asc)$", it, re.IGNORECASE):
+                    order_by.append(it)
+                else:
+                    order_by.append(f"{it} ASC")
+        elif re.match(r"^highest\s+(\w+)", p, re.IGNORECASE):
+            order_by.append(f"{re.sub(r'^highest\s+', '', p, flags=re.IGNORECASE).strip()} DESC")
+        elif re.match(r"^lowest\s+(\w+)", p, re.IGNORECASE):
+            order_by.append(f"{re.sub(r'^lowest\s+', '', p, flags=re.IGNORECASE).strip()} ASC")
+        elif re.match(r"^(where|filter|and)\s+", p, re.IGNORECASE) or re.search(r"^\w+\s+is\s+", p, re.IGNORECASE):
+            filters.append(normalize_cond(p))
         elif re.match(r"^group\s+", p, re.IGNORECASE):
             group_by = [x.strip() for x in re.sub(r"^group\s+(by\s+)?", "", p, flags=re.IGNORECASE).split(",")]
         elif re.match(r"^(aggregate|agg)\s+", p, re.IGNORECASE):
             aggregates = [x.strip() for x in re.sub(r"^(aggregate|agg)\s+", "", p, flags=re.IGNORECASE).split(",")]
-        elif re.match(r"^sort\s+", p, re.IGNORECASE):
-            order_by = [x.strip() for x in re.sub(r"^sort\s+(by\s+)?", "", p, flags=re.IGNORECASE).split(",")]
-        elif re.match(r"^(take|limit)\s+", p, re.IGNORECASE):
-            limit = re.sub(r"^(take|limit)\s+", "", p, flags=re.IGNORECASE).strip()
+        elif re.match(r"^count$", p, re.IGNORECASE):
+            aggregates.append("COUNT(*) AS count")
+        elif idx == 0 and not p.startswith("-") and " " not in p:
+            source = p
 
     select_cols = ["*"]
     for enr in enrichments:
@@ -260,7 +357,16 @@ class JevQLDatabase:
         if from_match:
             table_name = from_match.group(1).strip("'\"").lower()
 
-        rows = data if data is not None else self.tables.get(table_name, [])
+        if data is not None:
+            rows = data
+        elif table_name in self.tables:
+            rows = self.tables[table_name]
+        elif len(self.tables) == 1:
+            rows = list(self.tables.values())[0]
+        elif "data" in self.tables:
+            rows = self.tables["data"]
+        else:
+            rows = []
         total_scanned = len(rows)
 
         # Extract WHERE clause
@@ -304,13 +410,14 @@ class JevQLDatabase:
 
         # Extract Semantic Questions across query
         questions: Dict[str, Dict[str, Any]] = {}
-        sem_calls = list(re.finditer(r"\b(CHOICE|NOUL|SCORE)\s*\(\s*(\w+)\s*,\s*['\"]([^'\"]+)['\"]\s*(?:,\s*(\[.*?\]|\{.*?\}))?\s*\)", clean_sql, re.IGNORECASE))
+        sem_calls = list(re.finditer(r"\b(CHOICE|NOUL|SCORE)\s*\(\s*(\w+)\s*,\s*['\"]([^'\"]+)['\"]\s*(?:,\s*(\[.*?\]|\{.*?\}))?\s*\)(?:\s+AS\s+(\w+))?", clean_sql, re.IGNORECASE))
 
         for idx, call in enumerate(sem_calls):
             fn_name = call.group(1).upper()
             col = call.group(2)
             inst = call.group(3)
             crit_raw = call.group(4)
+            alias = call.group(5)
 
             criteria = None
             if fn_name == "CHOICE":
@@ -344,6 +451,7 @@ class JevQLDatabase:
                 "instructions": inst,
                 "criteria": criteria,
                 "col": col,
+                "alias": alias,
                 "raw_call": call.group(0)
             }
 
@@ -355,7 +463,10 @@ class JevQLDatabase:
                 row_q = {qid: {"type": q["type"], "instructions": q["instructions"], "criteria": q["criteria"]} for qid, q in questions.items()}
                 # State is the column text of first question
                 first_col = next(iter(questions.values()))["col"]
-                state = row.get(first_col, row)
+                if first_col == "auto" or first_col not in row:
+                    state = resolve_auto_text(row)
+                else:
+                    state = row.get(first_col, row)
                 ans = self.client.evaluate_single_state(state, row_q)
                 row_answers.append(ans)
             else:
@@ -382,16 +493,25 @@ class JevQLDatabase:
         for row, ans in surviving_rows:
             item = dict(row)
             for qid, q in questions.items():
+                alias = q.get("alias")
                 if q["type"] == "choice":
-                    item["dept"] = ans.get(qid, {}).get("choice")
-                    item["predicted_intent"] = ans.get(qid, {}).get("choice")
-                    item["category"] = ans.get(qid, {}).get("choice")
+                    val = ans.get(qid, {}).get("choice")
+                    if alias:
+                        item[alias] = val
+                    item["dept"] = val
+                    item["predicted_intent"] = val
+                    item["category"] = val
                 elif q["type"] == "score":
-                    item["urgency"] = ans.get(qid, {}).get("score")
-                    item["frustration"] = ans.get(qid, {}).get("score")
+                    val = ans.get(qid, {}).get("score")
+                    if alias:
+                        item[alias] = val
+                    item["urgency"] = val
+                    item["score"] = val
                 elif q["type"] == "noul":
-                    item["is_urgent"] = ans.get(qid, {}).get("noul")
-                    item["is_emergency"] = ans.get(qid, {}).get("noul")
+                    val = ans.get(qid, {}).get("noul")
+                    if alias:
+                        item[alias] = val
+                    item["is_urgent"] = val
             out_rows.append(item)
 
         if analyze:

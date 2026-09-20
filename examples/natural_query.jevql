@@ -1,0 +1,5 @@
+from "bench/golden_banking.json"
+where status is open
+ask "card stolen or lost?" as is_stolen > 0.6
+tag as card_arrival, lost_card, transfer as intent
+top 3 by is_stolen

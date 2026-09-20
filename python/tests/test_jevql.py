@@ -33,6 +33,19 @@ class TestJevQL(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["id"], "T-1")
 
+    def test_natural_language_query(self):
+        nlq = """
+            from tickets
+            where status is open
+            ask "Technical outage?" as is_outage > 0.5
+            tag as tech, billing
+            top 1 by is_outage
+        """
+        rows = jevql(nlq, self.tickets)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["id"], "T-1")
+        self.assertEqual(rows[0]["tag"], "tech")
+
     def test_pushdown_pruning(self):
         db = JevQLDatabase(self.tickets)
         res = db.analyze("""

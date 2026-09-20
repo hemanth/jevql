@@ -13,18 +13,16 @@ npm install jevql
 ```js
 import jevql from 'jevql';
 
-const rows = await jevql(`
-  SELECT id,
-         CHOICE(body, 'Team', ['billing', 'security', 'tech']) AS dept,
-         SCORE(body, 'Urgency', ['low', 'medium', 'high']) AS urgency
-  FROM data
-  WHERE status = 'open'
-    AND NOUL(body, 'Does this issue require immediate escalation?') > 0.7
-  ORDER BY urgency DESC
-`, tickets);
+const rows = await jevql`
+  from ${tickets}
+  where status is open
+  ask "is there an immediate outage?" as is_outage > 0.7
+  tag as billing, security, tech
+  top 10 by is_outage
+`;
 ```
 
-`jevql()` executes SQL statements with first-class semantic snap judgments, calibrated probabilities, and relational pushdown filtering. That's the whole API.
+`jevql` executes natural language queries and PostgreSQL SQL with first-class semantic snap judgments and relational pushdown filtering. That's the whole API.
 
 ## Group by semantic choice
 
@@ -88,27 +86,24 @@ Executes pushdown scans directly on PostgreSQL tables, then streams rows through
 ## CLI & Interactive REPL
 
 ```bash
-jevql -f tickets.json -q "SELECT * FROM data WHERE NOUL(body, 'Urgent?') > 0.8"
-jevql -f tickets.csv               # Interactive REPL with live table formatting
-jevql -f tickets.json --analyze -q "SELECT CHOICE(body, 'Dept', ['billing', 'tech']) FROM data"
+jevql script.jevql                 # Run natural language query directly
+jevql                              # Interactive REPL shell
+jevql -f tickets.json --analyze -q "from data where status is open top 5"
 ```
 
-## Pipeline dataflow syntax
+## Natural & pipeline syntax
 
-For linear data transformations, pipeline syntax avoids nested subqueries and SQL CTE boilerplate:
+Minimalist English syntax with auto-column resolution and relational pushdown:
 
-```js
-const alerts = await jevql(`
-  from tickets
-  | filter status == 'open'
-  | classify body -> [billing, security, tech] as dept
-  | judge body ? 'Immediate outage?' as is_outage > 0.7
-  | sort is_outage desc
-  | take 10
-`, tickets);
+```
+from "tickets.json"
+where status is open
+ask "is there an immediate outage?" as is_outage > 0.7
+tag as billing, security, tech
+top 10 by is_outage
 ```
 
-Both pipeline syntax and standard PostgreSQL SQL run on the same relational pushdown planner.
+Both natural language and standard SQL run on the same relational pushdown planner.
 
 ## Empirical benchmark
 
