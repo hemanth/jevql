@@ -88,26 +88,38 @@ Executes pushdown scans directly on PostgreSQL tables, then streams rows through
 ## CLI & Interactive REPL
 
 ```bash
-# Query any file directly
 jevql -f tickets.json -q "SELECT * FROM data WHERE NOUL(body, 'Urgent?') > 0.8"
-
-# Launch interactive SQL REPL with live table formatting
-jevql -f tickets.csv
-
-# Inspect query plan and token savings
+jevql -f tickets.csv               # Interactive REPL with live table formatting
 jevql -f tickets.json --analyze -q "SELECT CHOICE(body, 'Dept', ['billing', 'tech']) FROM data"
 ```
 
+## Pipeline dataflow syntax
+
+For linear data transformations, pipeline syntax avoids nested subqueries and SQL CTE boilerplate:
+
+```js
+const alerts = await jevql(`
+  from tickets
+  | filter status == 'open'
+  | classify body -> [billing, security, tech] as dept
+  | judge body ? 'Immediate outage?' as is_outage > 0.7
+  | sort is_outage desc
+  | take 10
+`, tickets);
+```
+
+Both pipeline syntax and standard PostgreSQL SQL run on the same relational pushdown planner.
+
 ## Empirical benchmark
 
-Evaluated on canonical golden queries from PolyAI/banking77 ($N=100$) comparing unoptimized row-by-row LLM loops against JevQL:
+Evaluated on canonical golden queries from PolyAI/banking77 ($N=100$ live) comparing unoptimized row-by-row LLM loops against JevQL:
 
 | Engine | Runtime Tier | Scanned | Evaluated | Top-1 Accuracy | Latency | Network Calls | Token Savings |
 |---|---|---|---|---|---|---|---|
 | **JevQL In-Tree** | Pure ES2022 (offline) | 100 | 42 | Heuristic | <0.05 ms | 0 | **100%** |
-| **JevQL Speculative** | TypeSafe Jev (Cloud) | 20 | 8 | **100.0%** | 33.9 ms/row | 8 | **80.0%** |
-| **JevQL Cache** | SHA-256 Memory Hit | 20 | 8 | Identical | **0.26 ms** | 0 | **100%** |
-| *Naive SQL+LLM* | Sequential Calls | 20 | 20 | ~100.0% | ~12,000 ms | 40 | 0% (Baseline) |
+| **JevQL Speculative** | TypeSafe Jev (Cloud) | 100 | 42 | **100.0%** | 19.7 ms/row | 42 | **79.0%** |
+| **JevQL Cache** | SHA-256 Memory Hit | 100 | 42 | Identical | **0.70 ms** | 0 | **100%** |
+| *Naive SQL+LLM* | Sequential Calls | 100 | 100 | ~100.0% | ~60,000 ms | 200 | 0% (Baseline) |
 
 Run `npm run bench` to reproduce live across canonical golden evaluation datasets.
 
