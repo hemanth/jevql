@@ -1,0 +1,44 @@
+{
+  "name": "jevql",
+  "version": "0.1.0",
+  "description": "PostgreSQL-compatible query language powered by TypeSafe Jev System One models",
+  "type": "module",
+  "main": "index.js",
+  "module": "index.js",
+  "types": "index.d.ts",
+  "bin": {
+    "jevql": "bin/jevql.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js"
+    }
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "demo": "node examples/basic.js",
+    "playground": "node serve-playground.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "index.js",
+    "index.d.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "author": "Hemanth HM <hemanth@h3manth.com> (https://h3manth.com)",
+  "license": "MIT",
+  "keywords": [
+    "sql",
+    "postgres",
+    "typesafe",
+    "jev",
+    "ai",
+    "query-language",
+    "system-one",
+    "noul",
+    "semantic-sql"
+  ]
+}

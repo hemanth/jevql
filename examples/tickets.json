@@ -1,0 +1,44 @@
+[
+  {
+    "id": "TICK-101",
+    "customer": "Stripe Payments Ltd",
+    "status": "open",
+    "priority": "P1",
+    "body": "CRITICAL: Our webhook endpoint is throwing 500 internal server errors on all payout events. Payouts to 4,000 sellers are stuck."
+  },
+  {
+    "id": "TICK-102",
+    "customer": "Acme Corp",
+    "status": "open",
+    "priority": "P3",
+    "body": "Could you please send us the updated W-9 tax form and the PDF receipt for last month's enterprise subscription?"
+  },
+  {
+    "id": "TICK-103",
+    "customer": "Globex Inc",
+    "status": "closed",
+    "priority": "P2",
+    "body": "We noticed duplicate credit card charges of $120 on invoice #8841. Please reverse the second charge immediately."
+  },
+  {
+    "id": "TICK-104",
+    "customer": "Wayne Enterprises",
+    "status": "open",
+    "priority": "P2",
+    "body": "I am furious that our account was suspended without warning. We are losing $50,000 every hour this downtime continues!"
+  },
+  {
+    "id": "TICK-105",
+    "customer": "Initech",
+    "status": "open",
+    "priority": "P3",
+    "body": "Would it be possible to add dark mode to the dashboard? Several engineers on our team requested it."
+  },
+  {
+    "id": "TICK-106",
+    "customer": "Cyberdyne Systems",
+    "status": "open",
+    "priority": "P1",
+    "body": "URGENT SECURITY: Possible unauthorized API key usage detected originating from IP 198.51.100.24."
+  }
+]

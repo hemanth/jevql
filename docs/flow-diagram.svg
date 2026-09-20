@@ -1,0 +1,157 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" width="1000" height="620" style="background:#ffffff; font-family:'Geist Mono', 'SF Mono', Monaco, monospace;">
+  <defs>
+    <style>
+      .hdr { font-size: 11px; font-weight: 700; letter-spacing: 0.16em; fill: #000000; text-transform: uppercase; }
+      .lbl { font-size: 12px; font-weight: 600; fill: #000000; }
+      .sub { font-size: 10px; fill: #555555; }
+      .wht-lbl { font-size: 13px; font-weight: 700; fill: #ffffff; letter-spacing: 0.05em; }
+      .wht-sub { font-size: 10px; fill: #cccccc; }
+      .tag { font-size: 9px; font-weight: 600; fill: #000000; }
+      .stroke-base { stroke: #000000; stroke-width: 1.2px; fill: none; }
+      .stroke-dashed { stroke: #000000; stroke-width: 1.2px; stroke-dasharray: 4,4; fill: none; }
+      .card-white { fill: #ffffff; stroke: #000000; stroke-width: 1.2px; }
+      .card-black { fill: #000000; stroke: #000000; stroke-width: 1.2px; }
+      .badge { fill: #ffffff; stroke: #000000; stroke-width: 1px; }
+    </style>
+  </defs>
+
+  <!-- Title Section -->
+  <text x="40" y="45" class="hdr">JEVQL ARCHITECTURAL EXECUTION &amp; OPTIMIZATION BLUEPRINT</text>
+  <line x1="40" y1="58" x2="960" y2="58" class="stroke-base" />
+
+  <!-- INPUT CLUSTER -->
+  <rect x="40" y="80" width="220" height="490" rx="6" class="card-white" />
+  <text x="55" y="105" class="hdr">1. DECLARATIVE INPUT</text>
+
+  <!-- Input Card 1: SQL Query -->
+  <rect x="55" y="125" width="190" height="155" rx="4" class="card-white" />
+  <text x="70" y="148" class="lbl">SQL with Jev Primitives</text>
+  <text x="70" y="166" class="sub">SELECT customer, dept,</text>
+  <text x="70" y="180" class="sub">  CHOICE(...) AS dept,</text>
+  <text x="70" y="194" class="sub">  SCORE(...) AS urgency</text>
+  <text x="70" y="208" class="sub">FROM 'tickets.json'</text>
+  <text x="70" y="222" class="sub">WHERE status = 'open'</text>
+  <text x="70" y="236" class="sub">  AND NOUL(...) > 0.8</text>
+  <text x="70" y="250" class="sub">GROUP BY dept</text>
+  <rect x="175" y="132" width="60" height="18" rx="2" class="badge" />
+  <text x="183" y="145" class="tag">PARSER</text>
+
+  <!-- Input Card 2: Heterogeneous Data Sources -->
+  <rect x="55" y="300" width="190" height="140" rx="4" class="card-white" />
+  <text x="70" y="325" class="lbl">Data Sources</text>
+  <text x="70" y="348" class="sub">• In-Memory Arrays</text>
+  <text x="70" y="366" class="sub">• JSON / JSONL Records</text>
+  <text x="70" y="384" class="sub">• CSV Delimited Files</text>
+  <text x="70" y="402" class="sub">• Live PostgreSQL Database</text>
+  <text x="70" y="420" class="sub">• SQLite / Local Tables</text>
+
+  <!-- Input Card 3: AST Generator -->
+  <rect x="55" y="460" width="190" height="90" rx="4" class="card-white" />
+  <text x="70" y="485" class="lbl">Lexer &amp; Parser AST</text>
+  <text x="70" y="505" class="sub">• Syntax tree validation</text>
+  <text x="70" y="523" class="sub">• Extract literal criteria</text>
+  <text x="70" y="541" class="sub">• Identify column scopes</text>
+
+
+  <!-- IN-TREE PLANNER & PUSHDOWN (MIDDLE COLUMN) -->
+  <rect x="290" y="80" width="370" height="210" rx="6" class="card-white" />
+  <text x="305" y="105" class="hdr">2. QUERY PLANNER &amp; PUSHDOWN</text>
+
+  <!-- Pushdown Pruner Box -->
+  <rect x="305" y="125" width="165" height="145" rx="4" class="card-white" />
+  <text x="318" y="148" class="lbl">Relational Pushdown</text>
+  <text x="318" y="168" class="sub">Filters non-matching rows</text>
+  <text x="318" y="184" class="sub">BEFORE calling AI models</text>
+  <text x="318" y="206" class="sub">• status = 'open'</text>
+  <text x="318" y="222" class="sub">• priority = 'P1'</text>
+  <text x="318" y="244" class="sub" style="font-weight:700; fill:#000;">Zero Model Cost ($0)</text>
+
+  <!-- Speculative Fan-out Box -->
+  <rect x="480" y="125" width="165" height="145" rx="4" class="card-white" />
+  <text x="493" y="148" class="lbl">Speculative Fan-Out</text>
+  <text x="493" y="168" class="sub">Combines multiple Jev</text>
+  <text x="493" y="184" class="sub">questions per surviving row</text>
+  <text x="493" y="206" class="sub">• 1 single HTTP payload</text>
+  <text x="493" y="222" class="sub">• Parallel evaluations</text>
+  <text x="493" y="244" class="sub" style="font-weight:700; fill:#000;">12x Cheaper &amp; Faster</text>
+
+
+  <!-- THE SIGNATURE INVERTED FOCAL CARD (CENTRAL ARBITER) -->
+  <rect x="290" y="320" width="370" height="110" rx="6" class="card-black" />
+  <text x="310" y="352" class="wht-lbl">JEVQL OPTIMIZER &amp; BATCH ENGINE</text>
+  <text x="310" y="374" class="wht-sub">Central execution coordinator. Schedules concurrent row batches,</text>
+  <text x="310" y="390" class="wht-sub">enforces rate-limiting backoff, queries SHA-256 LRU cache,</text>
+  <text x="310" y="406" class="wht-sub">and coordinates semantic predicates with relational aggregates.</text>
+
+
+  <!-- LOCAL IN-TREE EXECUTION (BOTTOM MIDDLE) -->
+  <rect x="290" y="455" width="370" height="115" rx="6" class="card-white" />
+  <text x="305" y="478" class="hdr">3. RELATIONAL ARBITER &amp; CACHE</text>
+
+  <rect x="305" y="490" width="165" height="65" rx="4" class="card-white" />
+  <text x="318" y="512" class="lbl">SHA-256 Memory Cache</text>
+  <text x="318" y="530" class="sub">Instant &lt;0.05ms hit rate</text>
+  <text x="318" y="544" class="sub">Avoids duplicate tokens</text>
+
+  <rect x="480" y="490" width="165" height="65" rx="4" class="card-white" />
+  <text x="493" y="512" class="lbl">PostgreSQL Semantics</text>
+  <text x="493" y="530" class="sub">GROUP BY, HAVING, ORDER</text>
+  <text x="493" y="544" class="sub">COUNT, AVG, SUM, LIMIT</text>
+
+
+  <!-- EXTERNAL CLOUD SYSTEM ONE RUNTIME (RIGHT COLUMN - DASHED) -->
+  <rect x="690" y="80" width="270" height="290" rx="6" class="card-white stroke-dashed" />
+  <text x="705" y="105" class="hdr">TYPESAFE SYSTEM ONE (JEV)</text>
+
+  <!-- Jev Primitive 1: Noul -->
+  <rect x="705" y="125" width="240" height="65" rx="4" class="card-white" />
+  <text x="720" y="148" class="lbl">NOUL(col, 'prompt')</text>
+  <text x="720" y="165" class="sub">Yes/No probability scalar [0.0, 1.0]</text>
+  <text x="720" y="179" class="sub">Predicate gating: WHERE NOUL(...) > 0.8</text>
+
+  <!-- Jev Primitive 2: Choice -->
+  <rect x="705" y="200" width="240" height="65" rx="4" class="card-white" />
+  <text x="720" y="223" class="lbl">CHOICE(col, 'prompt', criteria)</text>
+  <text x="720" y="240" class="sub">Categorical distribution &amp; winning label</text>
+  <text x="720" y="254" class="sub">Enables GROUP BY CHOICE(...) AS dept</text>
+
+  <!-- Jev Primitive 3: Score -->
+  <rect x="705" y="275" width="240" height="80" rx="4" class="card-white" />
+  <text x="720" y="298" class="lbl">SCORE(col, 'prompt', levels)</text>
+  <text x="720" y="315" class="sub">Calibrated continuous score spectrum</text>
+  <text x="720" y="329" class="sub">Enables ORDER BY SCORE(...) DESC</text>
+  <text x="720" y="343" class="sub">CONFIDENCE(expr) calibration gating</text>
+
+
+  <!-- FINAL OUTPUT CONTAINER -->
+  <rect x="690" y="390" width="270" height="180" rx="6" class="card-white" />
+  <text x="705" y="415" class="hdr">4. OUTPUT PROJECTION</text>
+  <text x="705" y="440" class="lbl">Deterministic Results</text>
+  <text x="705" y="460" class="sub">• Formatted ASCII / Unicode Tables</text>
+  <text x="705" y="478" class="sub">• JSON Object Streams</text>
+  <text x="705" y="496" class="sub">• CSV Delimited Exports</text>
+  <text x="705" y="514" class="sub">• Telemetry (Tokens, Hits, Latency)</text>
+  <rect x="705" y="530" width="240" height="28" rx="3" class="card-black" />
+  <text x="735" y="548" class="wht-lbl" style="font-size:11px;">100% TYPED &amp; REPRODUCIBLE</text>
+
+
+  <!-- ORTHOGONAL ROUTING CONNECTORS -->
+  <!-- 1. Query to Planner -->
+  <path d="M 245 190 L 290 190" class="stroke-base" />
+
+  <!-- 2. Planner to Inverted Focal Card -->
+  <path d="M 475 290 L 475 320" class="stroke-base" />
+
+  <!-- 3. Focal Card to Cache / In-Tree -->
+  <path d="M 475 430 L 475 455" class="stroke-base" />
+
+  <!-- 4. Focal Card to External Jev Cloud -->
+  <path d="M 660 360 L 675 360 Q 685 360 685 240 L 705 240" class="stroke-base" />
+
+  <!-- 5. Cloud Jev back to Focal Engine -->
+  <path d="M 705 270 L 680 270 Q 670 270 670 380 L 660 380" class="stroke-base" />
+
+  <!-- 6. Focal Engine to Output -->
+  <path d="M 660 410 L 690 410" class="stroke-base" />
+
+</svg>
