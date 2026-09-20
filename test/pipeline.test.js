@@ -42,3 +42,22 @@ test('executes native pipeline query on datasets', async () => {
   assert.ok(rows.find(r => r.id === 1).dept === 'tech');
   assert.ok(rows.find(r => r.id === 2).dept === 'billing');
 });
+
+test('executes tagged template literal queries directly', async () => {
+  const tickets = [
+    { id: 1, text: "Server 500 internal error", status: "open" },
+    { id: 2, text: "Tax invoice receipt please", status: "open" },
+    { id: 3, text: "Old closed ticket", status: "closed" }
+  ];
+
+  const limitNum = 2;
+  const rows = await jevql`
+    from ${tickets}
+    | filter status == 'open'
+    | classify text -> [tech, billing] as dept
+    | take ${limitNum}
+  `;
+
+  assert.strictEqual(rows.length, 2);
+  assert.strictEqual(rows[0].dept, 'tech');
+});

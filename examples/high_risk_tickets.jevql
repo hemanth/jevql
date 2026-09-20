@@ -1,0 +1,6 @@
+from "bench/golden_banking.json"
+| filter status == 'open'
+| classify message -> [card_arrival, lost_card, transfer] as intent
+| judge message ? "Customer extremely dissatisfied or urgent?" as urgent > 0.5
+| sort -urgent
+| take 3

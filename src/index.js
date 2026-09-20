@@ -52,9 +52,54 @@ class JevQLDatabase {
 }
 
 /**
- * Main jevql function - adapts dynamically based on arguments.
+ * Main jevql function - adapts dynamically based on arguments:
+ *
+ * 1. Tagged Template Literal:
+ *    const rows = await jevql`from ${tickets} | filter status == 'open' | take 10`;
+ *
+ * 2. Direct query:
+ *    const rows = await jevql('SELECT * FROM "tickets.json"');
+ *    const rows = await jevql('from tickets | filter status == "open"', tickets);
+ *
+ * 3. Database instance:
+ *    const db = jevql(tickets);
+ *
+ * 4. Curried query:
+ *    const filterUrgent = jevql('SELECT * FROM data WHERE NOUL(body, "Urgent?") > 0.8');
  */
-export default function jevql(firstArg, secondArg = null, options = {}) {
+export default function jevql(firstArg, ...rest) {
+  // Case 0: Tagged Template Literal: jevql`from ${tickets} | ...`
+  if (Array.isArray(firstArg) && firstArg.raw !== undefined) {
+    const strings = firstArg;
+    const values = rest;
+    let queryStr = '';
+    let extractedData = null;
+
+    for (let i = 0; i < strings.length; i++) {
+      queryStr += strings[i];
+      if (i < values.length) {
+        const val = values[i];
+        if (Array.isArray(val) || (val && typeof val === 'object' && !val.type && !val.name)) {
+          extractedData = val;
+          queryStr += 'data';
+        } else if (typeof val === 'number' || typeof val === 'boolean') {
+          queryStr += String(val);
+        } else if (typeof val === 'string') {
+          queryStr += `'${val.replace(/'/g, "''")}'`;
+        } else {
+          queryStr += String(val);
+        }
+      }
+    }
+
+    const sql = isPipelineQuery(queryStr) ? pipelineToSQL(queryStr) : queryStr;
+    const db = new JevQLDatabase(extractedData, {});
+    return db.query(sql);
+  }
+
+  const secondArg = rest[0] !== undefined ? rest[0] : null;
+  let options = rest[1] !== undefined ? rest[1] : {};
+
   // Check if firstArg is a query (either SQL or Pipeline)
   const isQuery = typeof firstArg === 'string' && (
     firstArg.trim().toUpperCase().startsWith('SELECT') ||
@@ -68,11 +113,10 @@ export default function jevql(firstArg, secondArg = null, options = {}) {
     if (secondArg != null && !Array.isArray(secondArg) && typeof secondArg === 'object' && !secondArg[0] && !secondArg.length) {
       if (secondArg.apiKey || secondArg.cache !== undefined || secondArg.concurrency) {
         options = secondArg;
-        secondArg = null;
       }
     }
 
-    if (secondArg != null) {
+    if (secondArg != null && (Array.isArray(secondArg) || secondArg.length !== undefined)) {
       const db = new JevQLDatabase(secondArg, options);
       return db.query(sql);
     }
@@ -96,6 +140,39 @@ export default function jevql(firstArg, secondArg = null, options = {}) {
   const opts = typeof secondArg === 'object' && secondArg !== null ? secondArg : options;
   return new JevQLDatabase(firstArg, opts);
 }
+
+jevql.with = function(options = {}) {
+  return function(firstArg, ...rest) {
+    if (Array.isArray(firstArg) && firstArg.raw !== undefined) {
+      const strings = firstArg;
+      const values = rest;
+      let queryStr = '';
+      let extractedData = null;
+
+      for (let i = 0; i < strings.length; i++) {
+        queryStr += strings[i];
+        if (i < values.length) {
+          const val = values[i];
+          if (Array.isArray(val) || (val && typeof val === 'object' && !val.type && !val.name)) {
+            extractedData = val;
+            queryStr += 'data';
+          } else if (typeof val === 'number' || typeof val === 'boolean') {
+            queryStr += String(val);
+          } else if (typeof val === 'string') {
+            queryStr += `'${val.replace(/'/g, "''")}'`;
+          } else {
+            queryStr += String(val);
+          }
+        }
+      }
+
+      const sql = isPipelineQuery(queryStr) ? pipelineToSQL(queryStr) : queryStr;
+      const db = new JevQLDatabase(extractedData, options);
+      return db.query(sql);
+    }
+    return jevql(firstArg, ...rest, options);
+  };
+};
 
 // Named exports
 export {

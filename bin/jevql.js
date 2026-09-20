@@ -9,16 +9,17 @@ const args = process.argv.slice(2);
 
 function printHelp() {
   console.log(`
-\x1b[1m\x1b[36mjevql\x1b[0m - PostgreSQL-like query language powered by TypeSafe Jev System One
+\x1b[1m\x1b[36mjevql\x1b[0m - Query language powered by TypeSafe Jev System One
 
 \x1b[1mUSAGE:\x1b[0m
-  jevql [options] [query]
-  jevql -f <file> -q "<sql>"
-  jevql -f <file> (starts interactive REPL)
+  jevql                          (starts interactive REPL)
+  jevql <script.jevql>           (executes JevQL / SQL script directly)
+  jevql "<query>"                (executes inline pipeline or SQL query)
+  jevql -f <file> -q "<query>"   (executes query on specified data file)
 
 \x1b[1mOPTIONS:\x1b[0m
   -f, --file <path>       Load data file (.json, .jsonl, .csv)
-  -q, --query <sql>       Execute SQL query
+  -q, --query <text>      Execute SQL or Pipeline query
   --format <fmt>          Output format: table (default), json, csv
   --explain               Show query execution plan without running
   --analyze               Run query and display detailed Jev telemetry
@@ -27,18 +28,23 @@ function printHelp() {
   -v, --version           Display version
   -h, --help              Show this help message
 
-\x1b[1mSEMANTIC FUNCTIONS:\x1b[0m
-  NOUL(col, 'question' [, 'true_desc' [, 'false_desc']])  Returns probability [0.0, 1.0]
-  IS_TRUE(col, 'question' [, threshold])                  Returns boolean
-  CHOICE(col, 'question', ['opt1', 'opt2'])               Returns winning category
-  SCORE(col, 'question', ['level0', 'level1', ...])       Returns calibrated score
-  CONFIDENCE(CHOICE(...))                                 Returns model confidence
-  PROB(CHOICE(...), 'opt')                                Returns probability for option
+\x1b[1mSEMANTIC FUNCTIONS & PIPELINE STAGES:\x1b[0m
+  judge col ? "prompt" as alias > thresh     (NOUL semantic condition)
+  classify col -> [opt1, opt2] as alias      (CHOICE classification)
+  score col ~> [l0, l1, l2] as alias         (SCORE rating)
+  NOUL(col, 'question' [, 't', 'f'])         Returns probability [0.0, 1.0]
+  CHOICE(col, 'question', ['a', 'b'])        Returns winning category
+  SCORE(col, 'question', ['l0', 'l1'])       Returns calibrated score
 
 \x1b[1mEXAMPLES:\x1b[0m
-  jevql "SELECT name, CHOICE(bio, 'Role', ['eng', 'design']) AS role FROM 'users.json'"
-  jevql -f tickets.csv -q "SELECT * FROM data WHERE NOUL(body, 'Urgent?') > 0.8"
-  jevql -f reviews.json --analyze -q "SELECT SCORE(text, 'Rating', ['bad','ok','great']) AS s FROM data ORDER BY s DESC"
+  # Pipeline script
+  jevql analysis.jevql
+
+  # Inline pipeline query
+  jevql "from 'tickets.json' | filter status == 'open' | take 5"
+
+  # SQL query
+  jevql "SELECT name, CHOICE(bio, 'Role', ['eng', 'design']) FROM 'users.json'"
 `);
 }
 
@@ -108,6 +114,35 @@ async function main() {
     db = jevql(null, options);
   }
 
+  // Resolve query if pointing to an existing script file (.jevql, .sql, .pql)
+  if (query) {
+    const candidatePath = path.resolve(process.cwd(), query);
+    if (fs.existsSync(candidatePath) && fs.statSync(candidatePath).isFile()) {
+      let content = fs.readFileSync(candidatePath, 'utf8');
+      if (content.startsWith('#!')) {
+        content = content.replace(/^#![^\n]*\n/, '');
+      }
+      query = content;
+    }
+  } else if (!process.stdin.isTTY) {
+    // Read query or data from stdin pipe
+    try {
+      const piped = fs.readFileSync(0, 'utf8').trim();
+      if (piped) {
+        if (piped.startsWith('[') || (piped.startsWith('{') && !piped.toLowerCase().startsWith('from '))) {
+          try {
+            const data = JSON.parse(piped);
+            db = jevql(data, options);
+          } catch (_) {
+            query = piped;
+          }
+        } else {
+          query = piped;
+        }
+      }
+    } catch (_) {}
+  }
+
   // If query is provided, execute it
   if (query) {
     try {
@@ -140,62 +175,79 @@ async function main() {
     return;
   }
 
-  // Interactive REPL Mode
-  if (filePath) {
-    console.log(`\x1b[36mJevQL Interactive Shell\x1b[0m (loaded: ${filePath})`);
-    console.log(`Type SQL statements, '.tables', '.schema', or '.exit'\n`);
+  // Interactive REPL Mode (default when no query is passed)
+  console.log(`\x1b[1m\x1b[36mJevQL Interactive Shell\x1b[0m${filePath ? ` (loaded: ${filePath})` : ''}`);
+  console.log(`Type queries directly (e.g. from "data.json" | ...), '.load <file>', or '.exit'\n`);
 
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-      prompt: '\x1b[32mjevql>\x1b[0m '
-    });
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    prompt: '\x1b[32mjevql>\x1b[0m '
+  });
 
-    rl.prompt();
+  rl.prompt();
 
-    rl.on('line', async (line) => {
-      const trimmed = line.trim();
-      if (!trimmed) {
-        rl.prompt();
-        return;
-      }
+  rl.on('line', async (line) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      rl.prompt();
+      return;
+    }
 
-      if (trimmed === '.exit' || trimmed === 'exit' || trimmed === 'quit') {
-        rl.close();
-        return;
-      }
+    if (trimmed === '.exit' || trimmed === 'exit' || trimmed === 'quit') {
+      rl.close();
+      return;
+    }
 
-      if (trimmed === '.tables') {
-        console.log('Available tables: data');
-        rl.prompt();
-        return;
-      }
-
-      if (trimmed === '.help') {
-        printHelp();
-        rl.prompt();
-        return;
-      }
-
-      try {
-        const start = Date.now();
-        const rows = await db.query(trimmed);
-        const elapsed = Date.now() - start;
-        outputResult(rows, format);
-        console.log(`\x1b[90mExecuted in ${elapsed}ms\x1b[0m\n`);
-      } catch (err) {
-        console.error(`\x1b[31mError:\x1b[0m ${err.message}\n`);
+    if (trimmed.startsWith('.load ')) {
+      const targetFile = trimmed.replace(/^\.load\s+/, '').trim().replace(/^['"]|['"]$/g, '');
+      const fullPath = path.resolve(process.cwd(), targetFile);
+      if (!fs.existsSync(fullPath)) {
+        console.error(`\x1b[31mFile not found: ${fullPath}\x1b[0m\n`);
+      } else {
+        const ext = path.extname(fullPath).toLowerCase();
+        let data;
+        if (ext === '.csv') {
+          const { parseCSV } = await import('../src/utils.js');
+          data = parseCSV(fs.readFileSync(fullPath, 'utf8'));
+        } else {
+          data = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+        }
+        db = jevql(data, options);
+        console.log(`\x1b[32mLoaded ${Array.isArray(data) ? data.length : 1} records from ${targetFile}\x1b[0m\n`);
       }
       rl.prompt();
-    });
+      return;
+    }
 
-    rl.on('close', () => {
-      console.log('\nBye!');
-      process.exit(0);
-    });
-  } else {
-    printHelp();
-  }
+    if (trimmed === '.tables') {
+      console.log('Available tables: data (or query any "path/file.json" directly)');
+      rl.prompt();
+      return;
+    }
+
+    if (trimmed === '.help') {
+      printHelp();
+      rl.prompt();
+      return;
+    }
+
+    try {
+      const start = Date.now();
+      const rows = await db.query(trimmed);
+      const elapsed = Date.now() - start;
+      outputResult(rows, format);
+      console.log(`\x1b[90mExecuted in ${elapsed}ms\x1b[0m\n`);
+    } catch (err) {
+      console.error(`\x1b[31mError:\x1b[0m ${err.message}\n`);
+    }
+    rl.prompt();
+  });
+
+  rl.on('close', () => {
+    console.log('\nBye!');
+    process.exit(0);
+  });
 }
 
 function outputResult(rows, format) {
