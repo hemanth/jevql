@@ -47,6 +47,17 @@ export function isPipelineQuery(text) {
   if (/^([a-zA-Z0-9_\.'"\-/\\]+|\$\{.*?\})\s*\{/i.test(trimmed)) {
     return true;
   }
+  // Cognitive Syntax: ? "question"
+  if (trimmed.includes('? "') || trimmed.includes("? '") || trimmed.includes('?“') || /^\s*\?\s*["'“]/m.test(trimmed)) {
+    return true;
+  }
+  // Cognitive Syntax: source: filter  OR  var = opt1 | opt2  OR  var = lvl1 .. lvl2
+  if (/^[a-zA-Z0-9_\.'"\-/\\]+\s*:\s*[a-zA-Z0-9_]/m.test(trimmed)) {
+    return true;
+  }
+  if (/^\w+\s*=\s*[^|\n]+\|/m.test(trimmed) || /^\w+\s*=\s*[^.\n]+\.\./m.test(trimmed)) {
+    return true;
+  }
   const lower = trimmed.toLowerCase();
   if (lower.startsWith('from ') || lower.startsWith('in ') || lower.startsWith('use ')) {
     return true;
@@ -175,6 +186,88 @@ export function pipelineToSQL(queryStr) {
       const isElse = Boolean(caseMatch[2]);
       const result = caseMatch[3];
       caseBranches.push({ prompt, isElse, result });
+      continue;
+    }
+
+    // Cognitive 1: Question with `?` (e.g. ? "immediate outage?" > 0.7)
+    const cognitiveQuestionMatch = stage.match(/^(?:(\w+)\s+)?\?\s*["'“]([^"'”]+)["'”](?:\s*(>|<|>=|<=)\s*([0-9\.]+))?(?:\s+as\s+(\w+))?/i);
+    if (cognitiveQuestionMatch) {
+      const col = cognitiveQuestionMatch[1] || 'auto';
+      const prompt = cognitiveQuestionMatch[2].replace(/'/g, "\\'");
+      const op = cognitiveQuestionMatch[3] || '>';
+      const thresh = cognitiveQuestionMatch[4] || '0.5';
+      const words = cognitiveQuestionMatch[2].replace(/[^\w\s]/g, '').trim().split(/\s+/);
+      const defaultAlias = `is_${words.slice(0, 3).join('_').toLowerCase()}`;
+      const alias = cognitiveQuestionMatch[5] || defaultAlias;
+
+      filters.push(`NOUL(${col}, '${prompt}') ${op} ${thresh}`);
+      semanticEnrichments.push({
+        type: 'NOUL',
+        col,
+        prompt,
+        alias
+      });
+      if (orderBy.length === 0) {
+        orderBy.push(`${alias} DESC`);
+      }
+      continue;
+    }
+
+    // Cognitive 2: Categorical Choice with `|` (e.g. dept = billing | security | tech)
+    const cognitiveChoiceMatch = stage.match(/^(\w+)\s*(?:=|:)\s*([^|\n]+(?:\|[^|\n]+)+)$/i);
+    if (cognitiveChoiceMatch) {
+      const alias = cognitiveChoiceMatch[1];
+      const opts = cognitiveChoiceMatch[2].split('|').map(s => s.trim().replace(/^['"`]|['"`]$/g, '')).filter(Boolean);
+      const criteria = `[${opts.map(o => `'${o.replace(/'/g, "\\'")}'`).join(', ')}]`;
+      semanticEnrichments.push({
+        type: 'CHOICE',
+        col: 'auto',
+        prompt: `Classify ${alias}`,
+        criteria,
+        alias
+      });
+      continue;
+    }
+
+    // Cognitive 3: Continuous Score with `..` (e.g. urgency = low .. medium .. high)
+    const cognitiveScoreMatch = stage.match(/^(\w+)\s*(?:=|:)\s*([^.\n]+(?:\.\.[^.\n]+)+)$/i);
+    if (cognitiveScoreMatch) {
+      const alias = cognitiveScoreMatch[1];
+      const lvls = cognitiveScoreMatch[2].split('..').map(s => s.trim().replace(/^['"`]|['"`]$/g, '')).filter(Boolean);
+      const criteria = `[${lvls.map(l => `'${l.replace(/'/g, "\\'")}'`).join(', ')}]`;
+      semanticEnrichments.push({
+        type: 'SCORE',
+        col: 'auto',
+        prompt: `Rate ${alias}`,
+        criteria,
+        alias
+      });
+      continue;
+    }
+
+    // Cognitive 4: Source with Constraints via `:` (e.g. tickets: status = open, priority = P1)
+    const cognitiveSourceMatch = stage.match(/^([a-zA-Z0-9_\.'"\-/\\]+|\$\{.*?\})\s*:\s*([^|\n.]+)$/i);
+    if (cognitiveSourceMatch && !stage.includes('|') && !stage.includes('..') && !stage.toLowerCase().startsWith('from ') && !stage.toLowerCase().startsWith('select ')) {
+      source = cognitiveSourceMatch[1].trim();
+      const filterBody = cognitiveSourceMatch[2].trim();
+      if (filterBody) {
+        const props = splitClausesRespectingBrackets(filterBody);
+        for (const prop of props) {
+          const eqMatch = prop.match(/^(\w+)\s*(:|!=|==|=|>|<|>=|<=)\s*(.+)$/);
+          if (eqMatch) {
+            const col = eqMatch[1].trim();
+            let op = eqMatch[2].trim();
+            if (op === ':' || op === '==') op = '=';
+            let val = eqMatch[3].trim();
+            if (!/^['"].*['"]$/.test(val) && !/^[0-9\.]+$/.test(val) && !/^(true|false|null)$/i.test(val)) {
+              val = `'${val}'`;
+            }
+            filters.push(`${col} ${op} ${val}`);
+          } else if (prop) {
+            filters.push(`status = '${prop.replace(/['"]/g, '')}'`);
+          }
+        }
+      }
       continue;
     }
 

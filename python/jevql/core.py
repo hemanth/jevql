@@ -173,6 +173,20 @@ def is_pipeline_query(query_str: str) -> bool:
     upper = s.upper()
     if upper.startswith(("SELECT", "EXPLAIN", "WITH")):
         return False
+    # Haskell list comprehension
+    if s.startswith('[') and s.endswith(']') and '|' in s:
+        return True
+    # Haskell record pattern
+    if re.search(r"^([a-zA-Z0-9_\.'\"\-\\/\\]+|\$\{.*?\})\s*\{", s, re.IGNORECASE):
+        return True
+    # Cognitive question
+    if '? "' in s or "? '" in s or re.search(r"^\s*\?\s*[\"']", s, re.MULTILINE):
+        return True
+    # Cognitive source or choice or score
+    if re.search(r"^[a-zA-Z0-9_\.'\"\-\\/\\]+\s*:\s*[a-zA-Z0-9_]", s, re.MULTILINE):
+        return True
+    if re.search(r"^\w+\s*=\s*[^|\n]+\|", s, re.MULTILINE) or re.search(r"^\w+\s*=\s*[^.\n]+\.\.", s, re.MULTILINE):
+        return True
     lower = s.lower()
     if lower.startswith(("from ", "in ", "use ")) or " | " in s or "\n|" in s:
         return True
@@ -182,31 +196,43 @@ def is_pipeline_query(query_str: str) -> bool:
 
 
 def pipeline_to_sql(pipe_str: str) -> str:
-    is_piped = "|" in pipe_str
-    if is_piped:
-        stages = [p.strip() for p in pipe_str.split("|") if p.strip()]
-    else:
-        stages = [re.sub(r"^([#]|--).*$", "", p).strip() for p in pipe_str.split("\n")]
+    text = pipe_str.strip()
+    comprehension_projections = []
+
+    # Haskell list comprehension: [ id, dept | ... ]
+    if text.startswith('[') and text.endswith(']') and '|' in text:
+        inner = text[1:-1].strip()
+        pipe_idx = inner.find('|')
+        proj_part = inner[:pipe_idx].strip()
+        text = inner[pipe_idx + 1:].strip()
+        comprehension_projections = [s.strip() for s in proj_part.split(',') if s.strip()]
+
+    if "\n" in text:
+        stages = [re.sub(r"^([#]|--).*$", "", p).strip() for p in text.split("\n")]
         stages = [p for p in stages if p]
+    elif "|" in text and "," not in text:
+        stages = [p.strip() for p in text.split("|") if p.strip()]
+    else:
+        stages = [p.strip() for p in re.split(r",(?![^\[]*\])", text) if p.strip()]
 
     source = "data"
     filters = []
     enrichments = []
+    projections = list(comprehension_projections)
     group_by = []
     aggregates = []
     order_by = []
     limit = None
+    case_branches = []
 
     def normalize_cond(c: str) -> str:
         c = re.sub(r"^(where|filter|and)\s+", "", c, flags=re.IGNORECASE).strip()
-        # status is not closed -> status != 'closed'
         c = re.sub(
             r"(\w+)\s+is\s+not\s+([^\s]+)",
             lambda m: f"{m.group(1)} != {m.group(2) if re.match(r'^[\'\"]|^[0-9\.]+|^(true|false|null)$', m.group(2), re.IGNORECASE) else f'\'{m.group(2)}\''}",
             c,
             flags=re.IGNORECASE
         )
-        # status is open -> status = 'open'
         c = re.sub(
             r"(\w+)\s+is\s+([^\s]+)",
             lambda m: f"{m.group(1)} = {m.group(2) if re.match(r'^[\'\"]|^[0-9\.]+|^(true|false|null)$', m.group(2), re.IGNORECASE) else f'\'{m.group(2)}\''}",
@@ -216,13 +242,130 @@ def pipeline_to_sql(pipe_str: str) -> str:
         c = c.replace("==", "=")
         return c
 
-    for idx, p in enumerate(stages):
-        if re.match(r"^(from|in|use)\s+", p, re.IGNORECASE):
-            source = re.sub(r"^(from|in|use)\s+", "", p, flags=re.IGNORECASE).strip()
-        elif re.match(r"^(ask|check|judge)\s+", p, re.IGNORECASE) or re.match(r"^judge\s+\w+\s*\?", p, re.IGNORECASE):
-            m = re.match(r"^judge\s+(\w+)\s*\?\s*['\"]([^'\"]+)['\"](?:\s+as\s+(\w+))?(?:\s*(>|<|>=|<=)\s*([0-9\.]+))?", p, re.IGNORECASE)
+    for idx, raw in enumerate(stages):
+        stage = re.sub(r"^\|\s*", "", raw).strip()
+
+        # 0. Haskell Case Branch: "prompt" -> res | otherwise -> res
+        m_case = re.match(r'^(?:["\']([^"\']+)["\']|(otherwise|_))\s*(?:->|=>)\s*(\w+)$', stage, re.IGNORECASE)
+        if m_case:
+            prompt, is_else, res = m_case.groups()
+            case_branches.append({"prompt": prompt, "is_else": bool(is_else), "result": res})
+            continue
+
+        # Cognitive 1: Question with `?` (e.g. ? "immediate outage?" > 0.7)
+        m_q = re.match(r'^(?:(\w+)\s+)?\?\s*["\']([^"\']+)["\'](?:\s*(>|<|>=|<=)\s*([0-9\.]+))?(?:\s+as\s+(\w+))?', stage, re.IGNORECASE)
+        if m_q:
+            col, prompt, op, thresh, alias = m_q.groups()
+            target_col = col or "auto"
+            op = op or ">"
+            thresh = thresh or "0.5"
+            words = re.findall(r"\w+", prompt)
+            default_alias = f"is_{'_'.join(words[:3]).lower()}" if words else "is_question"
+            out_alias = alias or default_alias
+            filters.append(f"NOUL({target_col}, '{prompt}') {op} {thresh}")
+            enrichments.append({"type": "NOUL", "col": target_col, "prompt": prompt, "alias": out_alias})
+            if not order_by:
+                order_by.append(f"{out_alias} DESC")
+            continue
+
+        # Cognitive 2: Categorical Choice with `|` (e.g. dept = billing | security | tech)
+        m_ch = re.match(r'^(\w+)\s*(?:=|:)\s*([^|\n]+(?:\|[^|\n]+)+)$', stage, re.IGNORECASE)
+        if m_ch:
+            alias, opts_str = m_ch.groups()
+            opts = [s.strip().strip("'\"`") for s in opts_str.split('|') if s.strip()]
+            crit = "[" + ", ".join(f"'{o}'" for o in opts) + "]"
+            enrichments.append({"type": "CHOICE", "col": "auto", "prompt": f"Classify {alias}", "criteria": crit, "alias": alias})
+            continue
+
+        # Cognitive 3: Continuous Score with `..` (e.g. urgency = low .. medium .. high)
+        m_sc = re.match(r'^(\w+)\s*(?:=|:)\s*([^.\n]+(?:\.\.[^.\n]+)+)$', stage, re.IGNORECASE)
+        if m_sc:
+            alias, lvls_str = m_sc.groups()
+            lvls = [s.strip().strip("'\"`") for s in lvls_str.split('..') if s.strip()]
+            crit = "[" + ", ".join(f"'{l}'" for l in lvls) + "]"
+            enrichments.append({"type": "SCORE", "col": "auto", "prompt": f"Rate {alias}", "criteria": crit, "alias": alias})
+            continue
+
+        # Cognitive 4: Source with Constraints via `:` (e.g. tickets: status = open)
+        m_src = re.match(r'^([a-zA-Z0-9_\.\'\"\\/\\]+|\$\{.*?\})\s*:\s*([^|\n.]+)$', stage, re.IGNORECASE)
+        if m_src and '|' not in stage and '..' not in stage and not stage.lower().startswith(('from ', 'select ')):
+            source = m_src.group(1).strip()
+            filter_body = m_src.group(2).strip()
+            if filter_body:
+                props = [p.strip() for p in filter_body.split(',') if p.strip()]
+                for prop in props:
+                    eq_match = re.match(r"^(\w+)\s*(:|!=|==|=|>|<|>=|<=)\s*(.+)$", prop)
+                    if eq_match:
+                        c, op, val = eq_match.groups()
+                        if op in (':', '=='): op = '='
+                        val = val.strip()
+                        if not re.match(r"^['\"].*['\"]$|^[0-9\.]+$|^(true|false|null)$", val, re.IGNORECASE):
+                            val = f"'{val}'"
+                        filters.append(f"{c} {op} {val}")
+                    elif prop:
+                        clean_prop = prop.replace("'", "").replace('"', '')
+                        filters.append(f"status = '{clean_prop}'")
+            continue
+
+        # Haskell Record Pattern: source { status: open }
+        m_rec = re.match(r'^([a-zA-Z0-9_\.\'\"\\/\\]+|\$\{.*?\})\s*\{([^}]*)\}', stage, re.IGNORECASE)
+        if m_rec:
+            source = m_rec.group(1).strip()
+            pat_body = m_rec.group(2).strip()
+            if pat_body:
+                props = [p.strip() for p in pat_body.split(',') if p.strip()]
+                for prop in props:
+                    eq_match = re.match(r"^(\w+)\s*(:|!=|==|=|>|<|>=|<=)\s*(.+)$", prop)
+                    if eq_match:
+                        c, op, val = eq_match.groups()
+                        if op in (':', '=='): op = '='
+                        val = val.strip()
+                        if not re.match(r"^['\"].*['\"]$|^[0-9\.]+$|^(true|false|null)$", val, re.IGNORECASE):
+                            val = f"'{val}'"
+                        filters.append(f"{c} {op} {val}")
+                    elif prop:
+                        filters.append(f"{prop} = true")
+            continue
+
+        # Haskell Classification Guard: dept -> [billing, tech]
+        m_hg = re.match(r'^(\w+)\s*(?:->|<-|in)\s*\[([^\]]+)\]', stage, re.IGNORECASE)
+        if m_hg:
+            alias, opts_str = m_hg.groups()
+            opts = [s.strip().strip("'\"`") for s in opts_str.split(',') if s.strip()]
+            crit = "[" + ", ".join(f"'{o}'" for o in opts) + "]"
+            enrichments.append({"type": "CHOICE", "col": "auto", "prompt": f"Classify {alias}", "criteria": crit, "alias": alias})
+            continue
+
+        # Haskell Scoring Guard: urgency ~> [low, high]
+        m_sg = re.match(r'^(\w+)\s*~>\s*\[([^\]]+)\]', stage, re.IGNORECASE)
+        if m_sg:
+            alias, lvls_str = m_sg.groups()
+            lvls = [s.strip().strip("'\"`") for s in lvls_str.split(',') if s.strip()]
+            crit = "[" + ", ".join(f"'{l}'" for l in lvls) + "]"
+            enrichments.append({"type": "SCORE", "col": "auto", "prompt": f"Rate {alias}", "criteria": crit, "alias": alias})
+            continue
+
+        # Haskell Predicate Guard: "prompt?" > 0.7
+        m_pg = re.match(r'^["\']([^"\']+)["\'](?:\s*(>|<|>=|<=)\s*([0-9\.]+))?$', stage, re.IGNORECASE)
+        if m_pg:
+            prompt, op, thresh = m_pg.groups()
+            op = op or ">"
+            thresh = thresh or "0.5"
+            words = re.findall(r"\w+", prompt)
+            alias = f"is_{'_'.join(words[:3]).lower()}" if words else "is_question"
+            filters.append(f"NOUL(auto, '{prompt}') {op} {thresh}")
+            enrichments.append({"type": "NOUL", "col": "auto", "prompt": prompt, "alias": alias})
+            if not order_by:
+                order_by.append(f"{alias} DESC")
+            continue
+
+        # Standard pipeline keywords
+        if re.match(r"^(from|in|use)\s+", stage, re.IGNORECASE):
+            source = re.sub(r"^(from|in|use)\s+", "", stage, flags=re.IGNORECASE).strip()
+        elif re.match(r"^(ask|check|judge)\s+", stage, re.IGNORECASE) or re.match(r"^judge\s+\w+\s*\?", stage, re.IGNORECASE):
+            m = re.match(r"^judge\s+(\w+)\s*\?\s*['\"]([^'\"]+)['\"](?:\s+as\s+(\w+))?(?:\s*(>|<|>=|<=)\s*([0-9\.]+))?", stage, re.IGNORECASE)
             if not m:
-                m = re.match(r"^(?:ask|check)\s+(?:(\w+)\s+)?['\"]([^'\"]+)['\"](?:\s+as\s+(\w+))?(?:\s*(>|<|>=|<=)\s*([0-9\.]+))?", p, re.IGNORECASE)
+                m = re.match(r"^(?:ask|check)\s+(?:(\w+)\s+)?['\"]([^'\"]+)['\"](?:\s+as\s+(\w+))?(?:\s*(>|<|>=|<=)\s*([0-9\.]+))?", stage, re.IGNORECASE)
             if m:
                 col, prompt, alias, op, thresh = m.groups()
                 target_col = col or "auto"
@@ -232,25 +375,25 @@ def pipeline_to_sql(pipe_str: str) -> str:
                 enrichments.append({"type": "NOUL", "col": target_col, "prompt": prompt, "alias": out_alias})
                 if op and thresh:
                     filters.append(f"NOUL({target_col}, '{prompt}') {op} {thresh}")
-        elif re.match(r"^(tag|label|classify|categorize|pick)\s+", p, re.IGNORECASE):
-            m = re.match(r"^(?:classify|tag)\s+(\w+)\s*->\s*(\[.*?\]|\{.*?\})\s+as\s+(\w+)", p, re.IGNORECASE)
+        elif re.match(r"^(tag|label|classify|categorize|pick)\s+", stage, re.IGNORECASE):
+            m = re.match(r"^(?:classify|tag)\s+(\w+)\s*->\s*(\[.*?\]|\{.*?\})\s+as\s+(\w+)", stage, re.IGNORECASE)
             if not m:
-                m = re.match(r"^(?:tag|label|classify|categorize|pick)\s+(?:(\w+)\s+)?(?:as|from|:\s*)\s*(?:\[([^\]]+)\]|([^\n\r]+?))(?:\s+as\s+(\w+))?$", p, re.IGNORECASE)
+                m = re.match(r"^(?:tag|label|classify|categorize|pick)\s+(?:(\w+)\s+)?(?:as|from|:\s*)\s*(?:\[([^\]]+)\]|([^\n\r]+?))(?:\s+as\s+(\w+))?$", stage, re.IGNORECASE)
                 if m:
                     explicit_col, opts_bracket, opts_plain, alias = m.groups()
                     opts_str = opts_bracket or opts_plain
                     opts = [s.strip().strip("'\"`") for s in opts_str.split(",") if s.strip()]
                     crit = "[" + ", ".join(f"'{o}'" for o in opts) + "]"
                     target_col = explicit_col or "auto"
-                    target_alias = alias or ("tag" if p.lower().startswith("tag") else "category")
+                    target_alias = alias or ("tag" if stage.lower().startswith("tag") else "category")
                     enrichments.append({"type": "CHOICE", "col": target_col, "prompt": f"Classify {target_alias}", "criteria": crit, "alias": target_alias})
             else:
                 col, crit, alias = m.groups()
                 enrichments.append({"type": "CHOICE", "col": col, "prompt": f"Classify {alias}", "criteria": crit, "alias": alias})
-        elif re.match(r"^(score|rate)\s+", p, re.IGNORECASE):
-            m = re.match(r"^score\s+(\w+)\s*~>\s*(\[.*?\])\s+as\s+(\w+)", p, re.IGNORECASE)
+        elif re.match(r"^(score|rate)\s+", stage, re.IGNORECASE):
+            m = re.match(r"^score\s+(\w+)\s*~>\s*(\[.*?\])\s+as\s+(\w+)", stage, re.IGNORECASE)
             if not m:
-                m = re.match(r"^(?:score|rate)\s+(?:(\w+)\s+)?(?:as|:\s*)\s*(?:\[([^\]]+)\]|([^\n\r]+?))(?:\s+as\s+(\w+))?$", p, re.IGNORECASE)
+                m = re.match(r"^(?:score|rate)\s+(?:(\w+)\s+)?(?:as|:\s*)\s*(?:\[([^\]]+)\]|([^\n\r]+?))(?:\s+as\s+(\w+))?$", stage, re.IGNORECASE)
                 if m:
                     explicit_col, lvls_bracket, lvls_plain, alias = m.groups()
                     lvls_str = lvls_bracket or lvls_plain
@@ -262,8 +405,8 @@ def pipeline_to_sql(pipe_str: str) -> str:
             else:
                 col, crit, alias = m.groups()
                 enrichments.append({"type": "SCORE", "col": col, "prompt": f"Rate {alias}", "criteria": crit, "alias": alias})
-        elif re.match(r"^(top|take|limit|first)\s+", p, re.IGNORECASE):
-            m = re.match(r"^(?:top|take|limit|first)\s+(\d+)(?:\s+by\s+(.+))?", p, re.IGNORECASE)
+        elif re.match(r"^(top|take|limit|first)\s+", stage, re.IGNORECASE):
+            m = re.match(r"^(?:top|take|limit|first)\s+(\d+)(?:\s+by\s+(.+))?", stage, re.IGNORECASE)
             if m:
                 limit = m.group(1)
                 if m.group(2):
@@ -272,8 +415,8 @@ def pipeline_to_sql(pipe_str: str) -> str:
                         order_by.append(sf.upper())
                     else:
                         order_by.append(f"{sf} DESC")
-        elif re.match(r"^(sort|order)\s+", p, re.IGNORECASE):
-            items = re.sub(r"^(sort|order)\s+(by\s+)?", "", p, flags=re.IGNORECASE).split(",")
+        elif re.match(r"^(sort|order)\s+", stage, re.IGNORECASE):
+            items = re.sub(r"^(sort|order)\s+(by\s+)?", "", stage, flags=re.IGNORECASE).split(",")
             for it in items:
                 it = it.strip()
                 if it.startswith("-"):
@@ -284,24 +427,36 @@ def pipeline_to_sql(pipe_str: str) -> str:
                     order_by.append(it)
                 else:
                     order_by.append(f"{it} ASC")
-        elif re.match(r"^highest\s+(\w+)", p, re.IGNORECASE):
-            order_by.append(f"{re.sub(r'^highest\s+', '', p, flags=re.IGNORECASE).strip()} DESC")
-        elif re.match(r"^lowest\s+(\w+)", p, re.IGNORECASE):
-            order_by.append(f"{re.sub(r'^lowest\s+', '', p, flags=re.IGNORECASE).strip()} ASC")
-        elif re.match(r"^(where|filter|and)\s+", p, re.IGNORECASE) or re.search(r"^\w+\s+is\s+", p, re.IGNORECASE):
-            filters.append(normalize_cond(p))
-        elif re.match(r"^group\s+", p, re.IGNORECASE):
-            group_by = [x.strip() for x in re.sub(r"^group\s+(by\s+)?", "", p, flags=re.IGNORECASE).split(",")]
-        elif re.match(r"^(aggregate|agg)\s+", p, re.IGNORECASE):
-            aggregates = [x.strip() for x in re.sub(r"^(aggregate|agg)\s+", "", p, flags=re.IGNORECASE).split(",")]
-        elif re.match(r"^count$", p, re.IGNORECASE):
+        elif re.match(r"^highest\s+(\w+)", stage, re.IGNORECASE):
+            order_by.append(f"{re.sub(r'^highest\s+', '', stage, flags=re.IGNORECASE).strip()} DESC")
+        elif re.match(r"^lowest\s+(\w+)", stage, re.IGNORECASE):
+            order_by.append(f"{re.sub(r'^lowest\s+', '', stage, flags=re.IGNORECASE).strip()} ASC")
+        elif re.match(r"^(where|filter|and)\s+", stage, re.IGNORECASE) or re.search(r"^\w+\s+is\s+", stage, re.IGNORECASE):
+            filters.append(normalize_cond(stage))
+        elif re.match(r"^group\s+", stage, re.IGNORECASE):
+            group_by = [x.strip() for x in re.sub(r"^group\s+(by\s+)?", "", stage, flags=re.IGNORECASE).split(",")]
+        elif re.match(r"^(aggregate|agg)\s+", stage, re.IGNORECASE):
+            aggregates = [x.strip() for x in re.sub(r"^(aggregate|agg)\s+", "", stage, flags=re.IGNORECASE).split(",")]
+        elif re.match(r"^count$", stage, re.IGNORECASE):
             aggregates.append("COUNT(*) AS count")
-        elif idx == 0 and not p.startswith("-") and " " not in p:
-            source = p
+        elif idx == 0 and not stage.startswith("-") and " " not in stage:
+            source = stage
 
-    select_cols = ["*"]
+    if case_branches:
+        case_whens = []
+        for b in case_branches:
+            if b["is_else"]:
+                case_whens.append(f"ELSE '{b['result']}'")
+            else:
+                case_whens.append(f"WHEN NOUL(auto, '{b['prompt']}') > 0.5 THEN '{b['result']}'")
+        case_sql = f"CASE {' '.join(case_whens)} END AS category"
+        enrichments.append({"raw_sql": case_sql})
+
+    select_cols = projections if projections else ["*"]
     for enr in enrichments:
-        if enr["type"] == "NOUL":
+        if "raw_sql" in enr:
+            select_cols.append(enr["raw_sql"])
+        elif enr["type"] == "NOUL":
             select_cols.append(f"NOUL({enr['col']}, '{enr['prompt']}') AS {enr['alias']}")
         elif enr["type"] == "CHOICE":
             select_cols.append(f"CHOICE({enr['col']}, '{enr['prompt']}', {enr['criteria']}) AS {enr['alias']}")

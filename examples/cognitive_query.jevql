@@ -1,0 +1,5 @@
+"bench/golden_banking.json": status = open
+? "card stolen or lost?" > 0.6
+intent = card_arrival | lost_card | cancel_transfer
+urgency = low .. medium .. high
+top 3

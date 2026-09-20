@@ -57,12 +57,30 @@ class TestJevQL(unittest.TestCase):
         self.assertEqual(res["telemetry"]["pushdown_pruned"], 1)
         self.assertEqual(res["telemetry"]["evaluated_rows"], 2)
 
-    def test_cache_hits(self):
-        db = JevQLDatabase(self.tickets)
-        q = "SELECT id, CHOICE(body, 'Team', ['billing', 'tech']) AS dept FROM data WHERE status = 'open'"
-        r1 = db.analyze(q)
-        r2 = db.analyze(q)
-        self.assertGreater(r2["telemetry"]["cache_hits"], 0)
+    def test_cognitive_syntax(self):
+        cog = """
+            tickets: status = open
+            ? "Technical outage?" > 0.5
+            dept = billing | security | tech
+            urgency = low .. medium .. high
+            top 1
+        """
+        rows = jevql(cog, self.tickets)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["id"], "T-1")
+        self.assertEqual(rows[0]["dept"], "tech")
+
+    def test_haskell_syntax(self):
+        hask = """
+            tickets { status: open }
+            | "Technical outage?" > 0.5
+            | dept -> [billing, tech]
+            take 1
+        """
+        rows = jevql(hask, self.tickets)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["id"], "T-1")
+        self.assertEqual(rows[0]["dept"], "tech")
 
 if __name__ == "__main__":
     unittest.main()

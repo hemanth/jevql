@@ -91,18 +91,19 @@ jevql                              # Interactive REPL shell
 jevql -f tickets.json --analyze -q "from data where status is open top 5"
 ```
 
-## Pattern matching & natural syntax
+## Cognitive Minimalist & Pattern Syntax
 
-Haskell-style record deconstruction with guards and list comprehensions:
+Designed for human working memory (Cognitive Load Theory) and zero LLM escaping bugs:
 
 ```
-tickets { status: open }
-  | "immediate outage?" > 0.7
-  | dept -> [billing, security, tech]
-  take 10
+tickets: status = open
+? "immediate outage?" > 0.7
+dept = billing | security | tech
+urgency = low .. medium .. high
+top 10
 ```
 
-Supports branching guards (`| "outage?" -> tech | otherwise -> billing`), list comprehensions (`[ id, dept | ... ]`), and natural English.
+Also supports Haskell pattern guards (`tickets { status: open } | "outage?" > 0.7 | dept -> [billing, tech]`) and list comprehensions.
 
 ## Empirical benchmark
 
