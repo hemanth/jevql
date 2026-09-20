@@ -91,19 +91,18 @@ jevql                              # Interactive REPL shell
 jevql -f tickets.json --analyze -q "from data where status is open top 5"
 ```
 
-## Natural & pipeline syntax
+## Pattern matching & natural syntax
 
-Minimalist English syntax with auto-column resolution and relational pushdown:
+Haskell-style record deconstruction with guards and list comprehensions:
 
 ```
-from "tickets.json"
-where status is open
-ask "is there an immediate outage?" as is_outage > 0.7
-tag as billing, security, tech
-top 10 by is_outage
+tickets { status: open }
+  | "immediate outage?" > 0.7
+  | dept -> [billing, security, tech]
+  take 10
 ```
 
-Both natural language and standard SQL run on the same relational pushdown planner.
+Supports branching guards (`| "outage?" -> tech | otherwise -> billing`), list comprehensions (`[ id, dept | ... ]`), and natural English.
 
 ## Empirical benchmark
 
