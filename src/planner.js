@@ -9,7 +9,7 @@ export function extractSemanticNodes(exprNode, results = []) {
 
   if (exprNode.type === 'FunctionCall') {
     const fnName = exprNode.name.toUpperCase();
-    if (['NOUL', 'CHOICE', 'SCORE', 'IS_TRUE', 'IS_FALSE', 'JEV'].includes(fnName)) {
+    if (['NOUL', 'CHOICE', 'SCORE', 'IS_TRUE', 'IS_FALSE', 'JEV', 'SEMANTIC'].includes(fnName)) {
       results.push(exprNode);
       // Even if it's a semantic node, its arguments could conceivably contain nested expressions
     }
@@ -131,7 +131,7 @@ export function buildQuestionDescriptor(fnNode, evalLiteralFn = defaultEvalLiter
   let type = 'noul';
   let criteria = undefined;
 
-  if (fnName === 'NOUL' || fnName === 'IS_TRUE' || fnName === 'IS_FALSE') {
+  if (fnName === 'NOUL' || fnName === 'IS_TRUE' || fnName === 'IS_FALSE' || fnName === 'SEMANTIC') {
     type = 'noul';
     if (args[2]) {
       const criteriaTrue = evalLiteralFn(args[2]);

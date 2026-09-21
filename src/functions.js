@@ -89,7 +89,7 @@ export const AGGREGATE_FUNCTIONS = {
 };
 
 export const SEMANTIC_FUNCTION_NAMES = new Set([
-  'NOUL', 'CHOICE', 'SCORE', 'CONFIDENCE', 'PROB', 'IS_TRUE', 'IS_FALSE', 'JEV'
+  'NOUL', 'CHOICE', 'SCORE', 'CONFIDENCE', 'PROB', 'IS_TRUE', 'IS_FALSE', 'JEV', 'SEMANTIC'
 ]);
 
 export function isSemanticFunction(name) {

@@ -81,3 +81,52 @@ test('supports custom third-party engine plugin via registerEngine', async () =>
   assert.strictEqual(results.length, 1);
   assert.strictEqual(results[0].winner, "custom_winner");
 });
+
+test('executes queries with WebMLKitEngine (webml-kit decision engine)', async () => {
+  const db = new JevQLDatabase(tickets, { engine: 'webml' });
+  const rows = await db.query(`
+    tickets: status = open
+    ? "Database server outage or 500 error?" > 0.5
+    team = infrastructure | billing | general
+    urgency = low .. medium .. critical
+    top 2
+  `);
+
+  assert.strictEqual(rows.length, 1);
+  assert.strictEqual(rows[0].id, "T-1");
+  assert.strictEqual(rows[0].team, "infrastructure");
+});
+
+test('executes SQL queries with SEMANTIC() function using WebMLKitEngine', async () => {
+  const db = new JevQLDatabase(tickets, { engine: 'webml-kit' });
+  const rows = await db.query(`
+    SELECT id, message
+    FROM data
+    WHERE SEMANTIC(message, 'Database crash or downtime') > 0.5
+  `);
+
+  assert.strictEqual(rows.length, 1);
+  assert.strictEqual(rows[0].id, "T-1");
+});
+
+test('evaluates NOUL, CHOICE, and SCORE with WebMLKitEngine', async () => {
+  const db = new JevQLDatabase(tickets, { engine: 'webml' });
+  const rows = await db.query(`
+    SELECT
+      id,
+      NOUL(message, 'Database down or fatal error?') AS is_outage,
+      CHOICE(message, 'Department', ['infrastructure', 'billing']) AS dept,
+      SCORE(message, 'Urgency', ['low', 'medium', 'high']) AS urgency_score
+    FROM data
+    WHERE id = 'T-1'
+  `);
+
+  assert.strictEqual(rows.length, 1);
+  assert.strictEqual(rows[0].id, 'T-1');
+  assert.strictEqual(typeof rows[0].is_outage, 'number');
+  assert.ok(rows[0].is_outage > 0.5);
+  assert.strictEqual(rows[0].dept, 'infrastructure');
+  assert.strictEqual(typeof rows[0].urgency_score, 'number');
+});
+
+

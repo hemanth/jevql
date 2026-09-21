@@ -723,6 +723,7 @@
             <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Presets:</span>
             <button class="preset-btn active" onclick="loadPreset('cognitive_incident')">Cognitive Incident Triage</button>
             <button class="preset-btn" onclick="loadPreset('cognitive_churn')">Cognitive Churn Escalation</button>
+            <button class="preset-btn" onclick="loadPreset('sql_semantic')">SQL SEMANTIC()</button>
             <button class="preset-btn" onclick="loadPreset('sql_triage')">SQL Aggregation (GROUP BY)</button>
             <button class="preset-btn" onclick="loadPreset('sql_confidence')">SQL Confidence Gating</button>
           </div>
@@ -731,10 +732,11 @@
             <div class="engine-picker">
               <span>ENGINE:</span>
               <select id="engineSelector" onchange="switchEngine(this.value)">
-                <option value="jev">TypeSafe Jev (System One)</option>
+                <option value="heuristic" selected>Zero-Dep Fast Heuristic (&lt;0.1ms)</option>
+                <option value="webml">webml-kit / OpenJev (WebGPU / Local)</option>
+                <option value="jev">TypeSafe Jev (System One API)</option>
                 <option value="llm">LLM Function-Calling (JSON Schema)</option>
                 <option value="embedding">Vector Embeddings (Cosine Sim)</option>
-                <option value="heuristic">In-Tree Zero-Dep Fallback</option>
               </select>
             </div>
             <button class="run-btn" onclick="executeCurrentQuery()">
@@ -746,7 +748,7 @@
         <div class="editor-pane">
           <div class="editor-label">
             <span>Query Text (Cognitive or SQL) — Editable</span>
-            <span id="engineBadge" style="color: var(--sage-text); font-weight: 700;">Engine: TypeSafe Jev (System One)</span>
+            <span id="engineBadge" style="color: var(--sage-text); font-weight: 700;">Engine: Zero-Dep Fast Heuristic (&lt;0.1ms)</span>
           </div>
           <textarea id="sqlInput" class="sql-input" spellcheck="false"></textarea>
           <div class="editor-footer">
@@ -979,8 +981,8 @@
 
       <div class="narrative-grid">
         <div class="narrative-card">
-          <h3>Pluggable Engines in Node.js</h3>
-          <p>Configure TypeSafe Jev, LLM structured output, or offline heuristic engines seamlessly:</p>
+          <h3>Pluggable Engines in Node.js &amp; Browser</h3>
+          <p>Configure TypeSafe Jev, webml-kit on-device WebGPU, LLM structured output, or offline heuristic engines seamlessly:</p>
           <div class="code-container">
             <div class="code-header">
               <span>javascript</span>
@@ -988,20 +990,20 @@
             </div>
             <pre class="code-block"><code>import jevql from 'jev-ql';
 
-// 1. Default: TypeSafe Jev System One
-const urgent = await jevql`
-  ${tickets}: status = open
+// 1. On-Device / WebGPU: webml-kit (OpenJev MiniCPM5 / Qwen3)
+const localQuery = jevql.with({ engine: 'webml', model: 'minicpm5-2b' });
+const urgent = await localQuery`
+  \${tickets}: status = open
   ? "Immediate outage or security incident?" > 0.6
   team = security | infrastructure | billing
   top 5
 `;
 
-// 2. OpenAI / LLM Structured output adapter
-const llmQuery = jevql.with({ engine: 'llm', apiKey: process.env.OPENAI_API_KEY });
-const rows = await llmQuery`
-  ${tickets}: status = open
-  dept = billing | tech
-`;</code></pre>
+// 2. TypeSafe Jev System One Cloud API
+const jevQuery = jevql.with({ engine: 'jev', apiKey: process.env.TYPESAFE_API_KEY });
+
+// 3. OpenAI / LLM Structured output adapter
+const llmQuery = jevql.with({ engine: 'llm', apiKey: process.env.OPENAI_API_KEY });</code></pre>
           </div>
         </div>
 
@@ -1037,8 +1039,11 @@ const myQuery = jevql.with({ engine: 'local_onnx' });</code></pre>
 
   </div>
 
-  <!-- LOAD REAL JEVQL ENGINE & GPU-LEXER SYNTAX HIGHLIGHTER -->
+  <!-- LOAD REAL JEVQL ENGINE & WEBML-KIT -->
   <script type="module">
+    import * as webmlKit from './webml-kit.browser.js';
+    window.webml = webmlKit.webml || webmlKit;
+    window.createDecisionEngine = webmlKit.createDecisionEngine;
     import { JevQLDatabase, isPipelineQuery, pipelineToSQL, createQueryPlan, parse } from './jevql-engine.js';
 
     const sampleData = [
@@ -1063,6 +1068,16 @@ intent = churn_risk | bug_report | question | feature_request
 frustration = calm .. annoyed .. furious
 top 3`,
 
+      sql_semantic: `SELECT
+  id,
+  customer,
+  priority,
+  SEMANTIC(body, 'Critical production outage or database downtime') AS outage_noul,
+  CHOICE(body, 'Assignee', ['security', 'billing', 'infrastructure']) AS team
+FROM data
+WHERE status = 'open' AND SEMANTIC(body, 'Critical production outage or database downtime') > 0.5
+ORDER BY outage_noul DESC`,
+
       sql_triage: `SELECT
   CHOICE(body, 'Team', ['billing', 'security', 'infrastructure', 'product']) AS department,
   COUNT(*) AS ticket_count,
@@ -1084,7 +1099,7 @@ ORDER BY security_prob DESC`
     };
 
     let activeTab = 'results';
-    let currentEngine = 'jev';
+    let currentEngine = 'heuristic';
     let currentResults = null;
     let currentAnalysis = null;
     let currentAST = null;
@@ -1095,10 +1110,11 @@ ORDER BY security_prob DESC`
     window.switchEngine = function(eng) {
       currentEngine = eng;
       const names = {
+        heuristic: 'Engine: Zero-Dep Fast Heuristic (<0.1ms)',
+        webml: 'Engine: webml-kit / OpenJev (On-Device WebGPU / Local)',
         jev: 'Engine: TypeSafe Jev (System One - Calibrated, Sub-30ms)',
         llm: 'Engine: LLM Function-Calling (Simulated JSON Schema - Generative)',
-        embedding: 'Engine: Vector Embeddings (Cosine Similarity)',
-        heuristic: 'Engine: In-Tree Zero-Dep Fallback (Offline Heuristic)'
+        embedding: 'Engine: Vector Embeddings (Cosine Similarity)'
       };
       document.getElementById('engineBadge').innerText = names[eng] || eng;
       if (currentResults !== null) {
@@ -1298,7 +1314,7 @@ ORDER BY security_prob DESC`
         // Keywords
         esc = esc.replace(/\b(import|from|const|await|new|class|extends|async|return|SELECT|WHERE|GROUP BY|ORDER BY|LIMIT|AS|DESC|ASC|true|false)\b/g, '<span class="gl-keyword">$1</span>');
         // Functions
-        esc = esc.replace(/\b(jevql|CHOICE|NOUL|SCORE|CONFIDENCE|PROB|AVG|COUNT|registerEngine|evaluateSingleState)\b/g, '<span class="gl-function">$1</span>');
+        esc = esc.replace(/\b(jevql|CHOICE|NOUL|SCORE|SEMANTIC|CONFIDENCE|PROB|AVG|COUNT|registerEngine|evaluateSingleState)\b/g, '<span class="gl-function">$1</span>');
         // Strings
         esc = esc.replace(/(['"`])(.*?)\1/g, '<span class="gl-string">$1$2$1</span>');
         // Numbers

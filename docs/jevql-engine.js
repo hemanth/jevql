@@ -310,7 +310,7 @@ const AGGREGATE_FUNCTIONS = {
 };
 
 const SEMANTIC_FUNCTION_NAMES = new Set([
-  'NOUL', 'CHOICE', 'SCORE', 'CONFIDENCE', 'PROB', 'IS_TRUE', 'IS_FALSE', 'JEV'
+  'NOUL', 'CHOICE', 'SCORE', 'CONFIDENCE', 'PROB', 'IS_TRUE', 'IS_FALSE', 'JEV', 'SEMANTIC'
 ]);
 
 function isSemanticFunction(name) {
@@ -1789,7 +1789,7 @@ function extractSemanticNodes(exprNode, results = []) {
 
   if (exprNode.type === 'FunctionCall') {
     const fnName = exprNode.name.toUpperCase();
-    if (['NOUL', 'CHOICE', 'SCORE', 'IS_TRUE', 'IS_FALSE', 'JEV'].includes(fnName)) {
+    if (['NOUL', 'CHOICE', 'SCORE', 'IS_TRUE', 'IS_FALSE', 'JEV', 'SEMANTIC'].includes(fnName)) {
       results.push(exprNode);
       // Even if it's a semantic node, its arguments could conceivably contain nested expressions
     }
@@ -1911,7 +1911,7 @@ function buildQuestionDescriptor(fnNode, evalLiteralFn = defaultEvalLiteral) {
   let type = 'noul';
   let criteria = undefined;
 
-  if (fnName === 'NOUL' || fnName === 'IS_TRUE' || fnName === 'IS_FALSE') {
+  if (fnName === 'NOUL' || fnName === 'IS_TRUE' || fnName === 'IS_FALSE' || fnName === 'SEMANTIC') {
     type = 'noul';
     if (args[2]) {
       const criteriaTrue = evalLiteralFn(args[2]);
@@ -2538,10 +2538,128 @@ class HeuristicEngine extends BaseSemanticEngine {
   }
 }
 
+/**
+ * 5. WebML-Kit Decision Engine (Local OpenJev / WebGPU / Wasm Engine)
+ * Runs Jev System One decisions on-device using webml-kit (wllama / GGUF on WebGPU or zero-dep fallback).
+ */
+class WebMLKitEngine extends BaseSemanticEngine {
+  constructor(options = {}) {
+    super(options);
+    this.name = 'webml';
+    this.model = options.model || 'minicpm5-2b';
+    this.mode = options.mode || 'auto';
+    this.decisionEngine = options.decisionEngine || null;
+    this._initPromise = null;
+    this.fallbackEngine = new HeuristicEngine(options);
+  }
+
+  async _getDecisionEngine() {
+    if (this.decisionEngine) return this.decisionEngine;
+    if (!this._initPromise) {
+      this._initPromise = (async () => {
+        try {
+          let mod = null;
+          if (typeof globalThis !== 'undefined' && (globalThis.webml?.createDecisionEngine || globalThis.createDecisionEngine)) {
+            mod = globalThis.webml || globalThis;
+          } else if (typeof window !== 'undefined' && (window.webml?.createDecisionEngine || window.createDecisionEngine)) {
+            mod = window.webml || window;
+          } else {
+            try {
+              mod = await import('webml-kit');
+            } catch {
+              // Ignore
+            }
+          }
+
+          const createFn = mod?.createDecisionEngine || mod?.default?.createDecisionEngine || mod?.webml?.createDecisionEngine;
+          if (typeof createFn === 'function') {
+            this.decisionEngine = await createFn({
+              model: this.model,
+              mode: this.mode,
+              wllama: this.options.wllama,
+              onProgress: this.options.onProgress
+            });
+            return this.decisionEngine;
+          }
+        } catch (err) {
+          if (typeof process !== 'undefined' && process.env?.DEBUG_JEVQL) {
+            console.warn(`[jevql] WebMLKitEngine initialization notice: ${err.message}`);
+          }
+        }
+        return null;
+      })();
+    }
+    return this._initPromise;
+  }
+
+  async evaluateSingleState(state, questions, options = {}) {
+    const engine = await this._getDecisionEngine();
+    if (!engine) {
+      return this.fallbackEngine.evaluateSingleState(state, questions, options);
+    }
+
+    const answers = {};
+    for (const [qid, q] of Object.entries(questions)) {
+      const type = q.type;
+      if (type === 'noul') {
+        const stmt = q.instructions || q.statement || (typeof q.criteria === 'string' ? q.criteria : '') || 'Condition holds';
+        const res = await engine.noul({
+          state,
+          statement: stmt,
+          onProgress: options.onProgress
+        });
+        answers[qid] = {
+          type: 'noul',
+          noul: Number((res.noul ?? 0.5).toFixed(2)),
+          passed: res.passed ?? ((res.noul ?? 0.5) >= 0.5),
+          confidence: Number(((res.confidence ?? res.noul) ?? 0.5).toFixed(2)),
+          latencyMs: res.latencyMs
+        };
+      } else if (type === 'choice') {
+        const criteria = q.criteria || {};
+        const optionsList = Array.isArray(criteria) ? criteria : Object.keys(criteria);
+        const questionText = q.instructions || 'Select the best matching category';
+        const res = await engine.choice({
+          state,
+          question: questionText,
+          options: optionsList.length > 0 ? optionsList : ['yes', 'no'],
+          onProgress: options.onProgress
+        });
+        answers[qid] = {
+          type: 'choice',
+          choice: res.choice,
+          probabilities: res.probabilities,
+          confidence: Number((res.confidence ?? 0.85).toFixed(2)),
+          latencyMs: res.latencyMs
+        };
+      } else if (type === 'score') {
+        const res = await engine.score({
+          state,
+          instructions: q.instructions || 'Evaluate score',
+          criteria: q.criteria,
+          onProgress: options.onProgress
+        });
+        answers[qid] = {
+          type: 'score',
+          score: Number((res.score ?? 0).toFixed(2)),
+          probabilities: res.probabilities,
+          confidence: Number((res.confidence ?? 0.85).toFixed(2)),
+          latencyMs: res.latencyMs
+        };
+      }
+    }
+    return answers;
+  }
+}
+
 // Engine registry
 const ENGINE_REGISTRY = new Map([
   ['jev', TypeSafeJevEngine],
   ['typesafe', TypeSafeJevEngine],
+  ['webml', WebMLKitEngine],
+  ['webml-kit', WebMLKitEngine],
+  ['webmlkit', WebMLKitEngine],
+  ['openjev', WebMLKitEngine],
   ['llm', LLMStructuredEngine],
   ['openai', LLMStructuredEngine],
   ['embedding', EmbeddingEngine],
@@ -2851,7 +2969,7 @@ class Executor {
         // 1. Semantic evaluation from Jev answers
         if (node._questionKey && answers[node._questionKey]) {
           const ans = answers[node._questionKey];
-          if (fnName === 'NOUL') return ans.noul;
+          if (fnName === 'NOUL' || fnName === 'SEMANTIC') return ans.noul;
           if (fnName === 'IS_TRUE') {
             const thresh = node.arguments[2] ? this.evalExpr(node.arguments[2], row, answers, groupRows) : 0.5;
             return ans.noul >= thresh;
@@ -2955,9 +3073,11 @@ class Executor {
       rows = joinedRows;
     }
 
-    // 4. Relational Pushdown Filter (Drop cheap non-matching rows before Jev AI!)
     if (plan.pushdownFilter) {
-      rows = rows.filter(row => Boolean(this.evalExpr(plan.pushdownFilter, row)));
+      rows = rows.filter(row => {
+        const res = this.evalExpr(plan.pushdownFilter, row);
+        return typeof res === 'number' ? res >= 0.5 : Boolean(res);
+      });
     }
 
     const rowsAfterPushdown = rows.length;
@@ -3032,7 +3152,9 @@ class Executor {
       const row = rows[i];
       const answers = rowAnswersMap.get(i) || {};
       if (plan.semanticFilter) {
-        if (this.evalExpr(plan.semanticFilter, row, answers)) {
+        const cond = this.evalExpr(plan.semanticFilter, row, answers);
+        const passed = typeof cond === 'number' ? cond >= 0.5 : Boolean(cond);
+        if (passed) {
           filteredRows.push({ row, answers, originalIndex: i });
         }
       } else {

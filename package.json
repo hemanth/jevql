@@ -43,5 +43,8 @@
     "system-one",
     "noul",
     "semantic-sql"
-  ]
+  ],
+  "dependencies": {
+    "webml-kit": "^0.4.0"
+  }
 }

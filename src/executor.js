@@ -183,7 +183,7 @@ export class Executor {
         // 1. Semantic evaluation from Jev answers
         if (node._questionKey && answers[node._questionKey]) {
           const ans = answers[node._questionKey];
-          if (fnName === 'NOUL') return ans.noul;
+          if (fnName === 'NOUL' || fnName === 'SEMANTIC') return ans.noul;
           if (fnName === 'IS_TRUE') {
             const thresh = node.arguments[2] ? this.evalExpr(node.arguments[2], row, answers, groupRows) : 0.5;
             return ans.noul >= thresh;
@@ -289,7 +289,10 @@ export class Executor {
 
     // 4. Relational Pushdown Filter (Drop cheap non-matching rows before Jev AI!)
     if (plan.pushdownFilter) {
-      rows = rows.filter(row => Boolean(this.evalExpr(plan.pushdownFilter, row)));
+      rows = rows.filter(row => {
+        const res = this.evalExpr(plan.pushdownFilter, row);
+        return typeof res === 'number' ? res >= 0.5 : Boolean(res);
+      });
     }
 
     const rowsAfterPushdown = rows.length;
@@ -364,7 +367,9 @@ export class Executor {
       const row = rows[i];
       const answers = rowAnswersMap.get(i) || {};
       if (plan.semanticFilter) {
-        if (this.evalExpr(plan.semanticFilter, row, answers)) {
+        const cond = this.evalExpr(plan.semanticFilter, row, answers);
+        const passed = typeof cond === 'number' ? cond >= 0.5 : Boolean(cond);
+        if (passed) {
           filteredRows.push({ row, answers, originalIndex: i });
         }
       } else {

@@ -1,5 +1,15 @@
 import { parse, tokenize } from './parser.js';
-import { JevClient } from './jev.js';
+import {
+  JevClient,
+  BaseSemanticEngine,
+  TypeSafeJevEngine,
+  LLMStructuredEngine,
+  EmbeddingEngine,
+  HeuristicEngine,
+  WebMLKitEngine,
+  registerEngine,
+  createEngine
+} from './jev.js';
 import { DataAdapter } from './adapters.js';
 import { Executor } from './executor.js';
 import { formatTable, formatCSV, parseCSV } from './utils.js';
@@ -192,6 +202,14 @@ export {
   JevClient,
   DataAdapter,
   Executor,
+  BaseSemanticEngine,
+  TypeSafeJevEngine,
+  LLMStructuredEngine,
+  EmbeddingEngine,
+  HeuristicEngine,
+  WebMLKitEngine,
+  registerEngine,
+  createEngine,
   formatTable,
   formatCSV,
   parseCSV
