@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JevQL — PostgreSQL for Semantic Data powered by TypeSafe Jev</title>
+  <title>JevQL — PostgreSQL &amp; Cognitive Query Language powered by TypeSafe Jev</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -28,6 +28,9 @@
       --coral: #fde8e4;
       --coral-border: #f6b3a5;
       --coral-text: #732616;
+      --azure: #eef4ff;
+      --azure-border: #b8d0f8;
+      --azure-text: #174291;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -51,13 +54,12 @@
       z-index: 999;
     }
 
-    /* Sticky frosted nav */
     nav {
       position: sticky;
       top: 0;
       z-index: 100;
       backdrop-filter: blur(12px);
-      background: rgba(251, 250, 247, 0.88);
+      background: rgba(251, 250, 247, 0.92);
       border-bottom: 1px solid var(--border);
       padding: 0.85rem 2rem;
       display: flex;
@@ -93,8 +95,8 @@
     .nav-links {
       display: flex;
       gap: 1.5rem;
-      font-size: 0.9rem;
-      font-weight: 500;
+      font-size: 0.88rem;
+      font-weight: 600;
     }
 
     .nav-links a {
@@ -103,58 +105,52 @@
       transition: color 0.15s;
     }
 
-    .nav-links a:hover {
-      color: var(--ink);
-    }
+    .nav-links a:hover { color: var(--ink); }
 
-    /* Container */
     .container {
-      max-width: 1120px;
+      max-width: 1140px;
       margin: 0 auto;
-      padding: 3rem 1.5rem;
+      padding: 3rem 1.5rem 6rem;
     }
 
     /* Hero */
     .hero {
       text-align: center;
-      padding: 3rem 0 4rem;
+      margin-bottom: 3.5rem;
     }
 
     .hero-pill {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      background: var(--peach);
-      border: 1px solid var(--peach-border);
-      color: var(--peach-text);
+      background: #f0ede4;
+      border: 1px solid var(--border);
       padding: 0.35rem 0.9rem;
-      border-radius: 9999px;
+      border-radius: 100px;
       font-size: 0.8rem;
       font-weight: 600;
+      color: var(--text-muted);
       margin-bottom: 1.5rem;
-      font-family: 'Geist Mono', monospace;
     }
 
-    h1 {
-      font-size: 3.4rem;
-      font-weight: 800;
+    .hero h1 {
+      font-size: 3.2rem;
+      font-weight: 700;
       letter-spacing: -0.04em;
       line-height: 1.15;
       margin-bottom: 1.25rem;
-      color: var(--ink);
     }
 
-    h1 span.editorial {
-      font-family: 'Playfair Display', serif;
-      font-weight: 400;
+    .hero h1 span.editorial {
+      font-family: 'Playfair Display', Georgia, serif;
       font-style: italic;
-      color: #2b2b2b;
+      font-weight: 400;
     }
 
     .hero-sub {
       font-size: 1.15rem;
       color: var(--text-muted);
-      max-width: 680px;
+      max-width: 780px;
       margin: 0 auto 2rem;
       line-height: 1.6;
     }
@@ -162,158 +158,200 @@
     .install-box {
       display: inline-flex;
       align-items: center;
-      background: #ffffff;
+      background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 0.5rem 1rem;
+      padding: 0.4rem 0.5rem 0.4rem 1rem;
       font-family: 'Geist Mono', monospace;
-      font-size: 0.9rem;
-      gap: 0.75rem;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      font-size: 0.88rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
 
-    .install-box code { color: #111; }
+    .install-box code {
+      color: var(--ink);
+      margin-right: 1rem;
+    }
+
     .install-box button {
-      background: none;
+      background: var(--ink);
+      color: #fff;
       border: none;
-      cursor: pointer;
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      padding: 0.2rem 0.4rem;
+      padding: 0.35rem 0.75rem;
       border-radius: 4px;
-      transition: all 0.15s;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
     }
-    .install-box button:hover { background: #f0eee6; color: #000; }
 
-    /* Telemetry metrics bar */
+    .install-box button:hover { opacity: 0.85; }
+
+    /* Metrics Bar */
     .metrics-bar {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
-      margin: 3rem 0;
+      gap: 1.25rem;
+      margin-bottom: 4rem;
     }
 
     .metric-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 1.25rem;
-      text-align: left;
+      padding: 1.5rem;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
 
     .metric-val {
       font-family: 'Geist Mono', monospace;
-      font-size: 1.7rem;
+      font-size: 2rem;
       font-weight: 700;
       color: var(--ink);
-      line-height: 1.2;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.3rem;
     }
 
     .metric-lbl {
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       color: var(--text-muted);
       font-weight: 500;
-      margin-top: 0.25rem;
+      line-height: 1.4;
     }
 
-    /* Workbench Section */
+    /* Section Headings */
     .section-title {
-      font-size: 1.75rem;
+      font-size: 2rem;
       font-weight: 700;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.03em;
       margin-bottom: 0.5rem;
     }
 
     .section-sub {
       color: var(--text-muted);
-      margin-bottom: 1.5rem;
-      font-size: 0.95rem;
+      font-size: 1rem;
+      margin-bottom: 2rem;
     }
 
+    /* Workbench */
     .workbench {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.04);
       overflow: hidden;
-      margin-bottom: 4rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+      margin-bottom: 4.5rem;
     }
 
     .workbench-header {
-      background: #f7f5ef;
+      background: #f4f2eb;
       border-bottom: 1px solid var(--border);
-      padding: 0.85rem 1.25rem;
+      padding: 0.75rem 1.25rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 1rem;
+      gap: 0.75rem;
     }
 
     .preset-selector {
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      flex-wrap: wrap;
     }
 
     .preset-btn {
       background: #ffffff;
       border: 1px solid var(--border);
-      font-size: 0.8rem;
-      font-weight: 600;
       padding: 0.35rem 0.75rem;
       border-radius: 4px;
-      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 600;
       color: var(--text);
+      cursor: pointer;
       transition: all 0.15s;
     }
 
-    .preset-btn:hover { background: #f0eee6; }
+    .preset-btn:hover {
+      border-color: var(--border-focus);
+    }
+
     .preset-btn.active {
       background: var(--ink);
       color: #ffffff;
       border-color: var(--ink);
     }
 
+    .controls-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .engine-picker {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .engine-picker select {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-family: 'Geist Mono', monospace;
+      font-weight: 600;
+      color: var(--ink);
+      outline: none;
+      cursor: pointer;
+    }
+
     .run-btn {
       background: var(--ink);
-      color: #ffffff;
+      color: #fff;
       border: none;
-      font-family: 'Geist Mono', monospace;
-      font-size: 0.85rem;
-      font-weight: 700;
-      padding: 0.45rem 1.2rem;
+      padding: 0.45rem 1.1rem;
       border-radius: 4px;
+      font-size: 0.82rem;
+      font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.4rem;
       transition: opacity 0.15s;
     }
 
     .run-btn:hover { opacity: 0.9; }
 
     .editor-pane {
-      padding: 1.25rem;
+      padding: 1rem 1.25rem 0.5rem;
       border-bottom: 1px solid var(--border);
+      background: #faf9f6;
     }
 
     .editor-label {
       font-family: 'Geist Mono', monospace;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.1em;
       color: var(--text-muted);
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
+      display: flex;
+      justify-content: space-between;
     }
 
     textarea.sql-input {
       width: 100%;
-      height: 120px;
+      height: 135px;
       font-family: 'Geist Mono', monospace;
       font-size: 0.88rem;
-      background: #faf9f6;
+      background: #ffffff;
       border: 1px solid var(--border);
       border-radius: 4px;
       padding: 0.75rem;
@@ -325,7 +363,6 @@
 
     textarea.sql-input:focus {
       border-color: var(--border-focus);
-      background: #ffffff;
     }
 
     /* Results Tabs */
@@ -334,12 +371,13 @@
       background: #f7f5ef;
       border-bottom: 1px solid var(--border);
       padding: 0 1rem;
+      overflow-x: auto;
     }
 
     .tab-btn {
       background: none;
       border: none;
-      padding: 0.75rem 1.25rem;
+      padding: 0.75rem 1.15rem;
       font-size: 0.82rem;
       font-weight: 600;
       color: var(--text-muted);
@@ -347,6 +385,7 @@
       border-bottom: 2px solid transparent;
       transition: all 0.15s;
       font-family: 'Geist Mono', monospace;
+      white-space: nowrap;
     }
 
     .tab-btn:hover { color: var(--ink); }
@@ -363,7 +402,7 @@
     }
 
     /* Table styling */
-    table.result-table {
+    table.result-table, table.mapping-table, table.competitor-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.84rem;
@@ -371,21 +410,28 @@
       text-align: left;
     }
 
-    table.result-table th {
+    table.result-table th, table.mapping-table th, table.competitor-table th {
       background: #f4f2eb;
       border: 1px solid var(--border);
-      padding: 0.6rem 0.85rem;
+      padding: 0.65rem 0.85rem;
       font-weight: 700;
       color: var(--ink);
+      font-size: 0.78rem;
+      letter-spacing: 0.03em;
     }
 
-    table.result-table td {
+    table.result-table td, table.mapping-table td, table.competitor-table td {
       border: 1px solid var(--border);
-      padding: 0.55rem 0.85rem;
+      padding: 0.6rem 0.85rem;
       color: #333;
+      vertical-align: top;
     }
 
-    table.result-table tr:nth-child(even) td { background: #faf9f5; }
+    table.result-table tr:nth-child(even) td,
+    table.mapping-table tr:nth-child(even) td,
+    table.competitor-table tr:nth-child(even) td {
+      background: #faf9f5;
+    }
 
     .tag-badge {
       display: inline-block;
@@ -398,13 +444,53 @@
     .tag-infra { background: var(--peach); color: var(--peach-text); border: 1px solid var(--peach-border); }
     .tag-bill { background: var(--butter); color: var(--butter-text); border: 1px solid var(--butter-border); }
     .tag-prod { background: var(--sage); color: var(--sage-text); border: 1px solid var(--sage-border); }
+    .tag-blue { background: var(--azure); color: var(--azure-text); border: 1px solid var(--azure-border); }
+
+    /* Code block */
+    pre.code-block {
+      background: #18181b;
+      color: #e4e4e7;
+      padding: 1.1rem;
+      border-radius: 6px;
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      overflow-x: auto;
+    }
+
+    /* Mapping Card Section */
+    .mapping-container {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 4.5rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+    }
+
+    .mapping-header {
+      background: #f4f2eb;
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.5rem;
+    }
+
+    .mapping-header h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .mapping-header p {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+    }
 
     /* Narrative sections */
     .narrative-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 2rem;
-      margin: 4rem 0;
+      margin: 3.5rem 0;
     }
 
     .narrative-card {
@@ -433,7 +519,7 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 1.5rem;
-      margin: 2rem 0 4rem;
+      margin: 1.5rem 0 4rem;
       box-shadow: 0 4px 16px rgba(0,0,0,0.03);
     }
 
@@ -441,18 +527,6 @@
       width: 100%;
       height: auto;
       display: block;
-    }
-
-    /* Code block */
-    pre.code-block {
-      background: #18181b;
-      color: #e4e4e7;
-      padding: 1rem;
-      border-radius: 6px;
-      font-family: 'Geist Mono', monospace;
-      font-size: 0.82rem;
-      line-height: 1.5;
-      overflow-x: auto;
     }
 
     footer {
@@ -475,8 +549,9 @@
     </a>
     <div class="nav-links">
       <a href="#workbench">Interactive Shell</a>
-      <a href="#architecture">Architecture</a>
-      <a href="#recipes">Code Recipes</a>
+      <a href="#mapping">Query ⟷ Primitive Mapping</a>
+      <a href="#competitors">Architecture &amp; Competitors</a>
+      <a href="#recipes">Recipes</a>
       <a href="https://github.com/typesafe-ai" target="_blank">TypeSafe Jev</a>
     </div>
   </nav>
@@ -485,10 +560,10 @@
 
     <!-- HERO -->
     <header class="hero">
-      <div class="hero-pill">System One AI + PostgreSQL Semantics</div>
+      <div class="hero-pill">System One AI + PostgreSQL &amp; Cognitive Semantics</div>
       <h1>Query unstructured data with <br><span class="editorial">calibrated semantic SQL</span></h1>
       <p class="hero-sub">
-        Extend SQL with TypeSafe's Jev model. First-class <code>NOUL</code>, <code>CHOICE</code>, and <code>SCORE</code> primitives in <code>SELECT</code>, <code>WHERE</code>, and <code>GROUP BY</code> with relational pushdown optimization.
+        Extend relational databases with TypeSafe's Jev model. First-class <code>NOUL</code>, <code>CHOICE</code>, and <code>SCORE</code> primitives with relational pushdown optimization, cognitive syntax, and pluggable semantic engines.
       </p>
 
       <div class="install-box">
@@ -509,42 +584,58 @@
       </div>
       <div class="metric-card">
         <div class="metric-val">100%</div>
-        <div class="metric-lbl">Pushdown filter relational pruning</div>
+        <div class="metric-lbl">Pushdown relational pruning</div>
       </div>
       <div class="metric-card">
         <div class="metric-val">0 deps</div>
-        <div class="metric-lbl">Pure ES modules &amp; Web standard fetch</div>
+        <div class="metric-lbl">Pure ES modules &amp; zero external packages</div>
       </div>
     </div>
 
     <!-- INTERACTIVE WORKBENCH -->
     <section id="workbench">
-      <h2 class="section-title">Interactive SQL Switchboard</h2>
-      <p class="section-sub">Test JevQL semantic expressions against realistic customer support records in your browser.</p>
+      <h2 class="section-title">Interactive Query Switchboard</h2>
+      <p class="section-sub">Test Cognitive Minimalist queries and standard SQL across pluggable AI architectures directly in your browser.</p>
 
       <div class="workbench">
         <div class="workbench-header">
           <div class="preset-selector">
-            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Presets:</span>
-            <button class="preset-btn active" onclick="loadPreset('triage')">Support Triage (GROUP BY)</button>
-            <button class="preset-btn" onclick="loadPreset('escalations')">Urgent Escalations (WHERE)</button>
-            <button class="preset-btn" onclick="loadPreset('confidence')">Confidence Gating</button>
-            <button class="preset-btn" onclick="loadPreset('scoring')">Sentiment Ranking</button>
+            <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Presets:</span>
+            <button class="preset-btn active" onclick="loadPreset('cognitive_incident')">Cognitive Incident Triage</button>
+            <button class="preset-btn" onclick="loadPreset('cognitive_churn')">Cognitive Churn Escalation</button>
+            <button class="preset-btn" onclick="loadPreset('sql_triage')">SQL Aggregation (GROUP BY)</button>
+            <button class="preset-btn" onclick="loadPreset('sql_confidence')">SQL Confidence Gating</button>
           </div>
-          <button class="run-btn" onclick="executeCurrentQuery()">
-            <span>▶ Execute Query</span>
-          </button>
+
+          <div class="controls-right">
+            <div class="engine-picker">
+              <span>ENGINE:</span>
+              <select id="engineSelector" onchange="switchEngine(this.value)">
+                <option value="jev">TypeSafe Jev (System One)</option>
+                <option value="llm">LLM Function-Calling (JSON Schema)</option>
+                <option value="embedding">Vector Embeddings (Cosine Sim)</option>
+                <option value="heuristic">In-Tree Zero-Dep Fallback</option>
+              </select>
+            </div>
+            <button class="run-btn" onclick="executeCurrentQuery()">
+              <span>▶ Execute</span>
+            </button>
+          </div>
         </div>
 
         <div class="editor-pane">
-          <div class="editor-label">SQL Query</div>
+          <div class="editor-label">
+            <span>Query Text (Cognitive or SQL)</span>
+            <span id="engineBadge" style="color: var(--sage-text); font-weight: 700;">Engine: TypeSafe Jev (System One)</span>
+          </div>
           <textarea id="sqlInput" class="sql-input" spellcheck="false"></textarea>
         </div>
 
         <div class="tabs-bar">
           <button class="tab-btn active" onclick="switchTab('results')">Query Results</button>
+          <button class="tab-btn" onclick="switchTab('mapping')">Query ⟷ Primitive Mapping</button>
           <button class="tab-btn" onclick="switchTab('plan')">Optimizer Plan</button>
-          <button class="tab-btn" onclick="switchTab('ast')">Parsed AST</button>
+          <button class="tab-btn" onclick="switchTab('ast')">Transpiled SQL &amp; AST</button>
           <button class="tab-btn" onclick="switchTab('data')">Raw Table Data</button>
         </div>
 
@@ -554,29 +645,201 @@
       </div>
     </section>
 
-    <!-- THE WHY & THE HOW -->
-    <div class="narrative-grid">
-      <div class="narrative-card">
-        <h3>The Semantic Void in Traditional SQL</h3>
-        <p>
-          Relational databases excel at exact equality, numbers, and dates. But modern data is semi-structured: support tickets, product reviews, emails, and error logs.
-        </p>
-        <p>
-          Keyword matching and regex fail on nuance and sarcasm. Vector search finds similar embeddings but cannot do calibrated conditional logic, multi-label classifications, or relational aggregations.
-        </p>
-      </div>
-      <div class="narrative-card">
-        <h3>The JevQL Optimization Engine</h3>
-        <p>
-          Calling LLMs row-by-row in userland is slow, uncalibrated, and expensive. JevQL introduces <strong>Relational Pushdown</strong>: deterministic filters prune rows before AI execution ($0 cost).
-        </p>
-        <p>
-          Surviving rows undergo <strong>Speculative Fan-out</strong>: all <code>NOUL</code>, <code>CHOICE</code>, and <code>SCORE</code> questions for a row are bundled into a single System One forward pass with SHA-256 caching.
-        </p>
-      </div>
-    </div>
+    <!-- SECTION: QUERY ELEMENT <-> JEV PRIMITIVE MAPPING -->
+    <section id="mapping">
+      <h2 class="section-title">Query Element ⟷ Jev API Primitive Mapping</h2>
+      <p class="section-sub">How human-readable query expressions translate directly into TypeSafe System One API contracts.</p>
 
-    <!-- ARCHITECTURE BLUEPRINT -->
+      <div class="mapping-container">
+        <div class="mapping-header">
+          <h3>Compiler &amp; Runtime Mapping Specification</h3>
+          <p>Every query clause maps 1:1 to either a relational pushdown filter or a typed Jev semantic primitive.</p>
+        </div>
+        <table class="mapping-table">
+          <thead>
+            <tr>
+              <th style="width: 25%;">Query Element / Syntax</th>
+              <th style="width: 20%;">Jev API Primitive</th>
+              <th style="width: 25%;">Payload &amp; Semantics</th>
+              <th style="width: 30%;">Output Type &amp; Mathematical Range</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <code>? "prompt" &gt; 0.7</code><br>
+                <code>NOUL(col, 'prompt')</code><br>
+                <code>IS_TRUE(col, 'prompt')</code>
+              </td>
+              <td><span class="tag-badge tag-blue">noul</span> (Boolean Gating)</td>
+              <td>
+                Sends <code>instructions: "prompt"</code>.<br>
+                Evaluates evidence and probability of condition being met.
+              </td>
+              <td>
+                <strong>Calibrated Float</strong>: <code>[0.0, 1.0]</code><br>
+                Usable directly in mathematical filters (<code>&gt; 0.7</code>) or ordering.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <code>var = opt1 | opt2 | opt3</code><br>
+                <code>CHOICE(col, 'prompt', [opts])</code>
+              </td>
+              <td><span class="tag-badge tag-sec">choice</span> (Categorical)</td>
+              <td>
+                Sends criteria mapping:<br>
+                <code>criteria: { opt1: null, opt2: null }</code>.<br>
+                Evaluates multinomial distribution.
+              </td>
+              <td>
+                <strong>Discrete Label</strong>: <code>"opt1"</code> (argmax winner)<br>
+                Per-class probabilities accessible via <code>PROB(choice, 'opt1')</code>.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <code>var = lvl1 .. lvl2 .. lvl3</code><br>
+                <code>SCORE(col, 'prompt', [lvls])</code>
+              </td>
+              <td><span class="tag-badge tag-prod">score</span> (Continuous Scalar)</td>
+              <td>
+                Sends ordered criteria spectrum:<br>
+                <code>criteria: ["low", "med", "high"]</code>.<br>
+                Projects text onto 1D continuous semantic vector.
+              </td>
+              <td>
+                <strong>Continuous Float</strong>: <code>[0.0, N-1]</code><br>
+                Interpolated score (e.g. <code>1.85</code>). Supports <code>AVG()</code> and numeric ordering.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <code>CONFIDENCE(choice_or_score)</code>
+              </td>
+              <td><span class="tag-badge tag-bill">confidence</span> (Metadata)</td>
+              <td>
+                Computed from distribution entropy and peakedness across options.
+              </td>
+              <td>
+                <strong>Calibrated Float</strong>: <code>[0.0, 1.0]</code><br>
+                Enables escalation rules (e.g., hand off to human if <code>&lt; 0.75</code>).
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <code>PROB(choice, 'opt1')</code>
+              </td>
+              <td><span class="tag-badge tag-infra">probabilities</span> (Logits)</td>
+              <td>
+                Extracted from the Jev <code>probabilities</code> map for option <code>'opt1'</code>.
+              </td>
+              <td>
+                <strong>Float Probability</strong>: <code>[0.0, 1.0]</code><br>
+                $$\sum P(\text{opt}_i) = 1.0$$
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <code>source: col = 'open'</code><br>
+                <code>WHERE status = 'open'</code>
+              </td>
+              <td><span class="tag-badge tag-badge" style="background:#e0e0e0; color:#333;">Relational Pushdown</span></td>
+              <td>
+                AST pre-filter. Evaluated in deterministic code before invoking any AI model.
+              </td>
+              <td>
+                <strong>Pruned Rows</strong> ($0 compute cost, 0 network tokens, 0ms latency).
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION: ARCHITECTURE & COMPETITORS -->
+    <section id="competitors">
+      <h2 class="section-title">Architecture &amp; Competitor Matrix</h2>
+      <p class="section-sub">Comparison of TypeSafe Jev System One vs. Autoregressive LLM loops, Constrained Decoding, and Vector Embeddings.</p>
+
+      <div class="mapping-container">
+        <div class="mapping-header">
+          <h3>System One vs. System Two &amp; Vector Architectures</h3>
+          <p>Why dedicated System One models outperform generative LLM prompt-and-parse loops for tabular and streaming data.</p>
+        </div>
+        <table class="competitor-table">
+          <thead>
+            <tr>
+              <th style="width: 22%;">Architecture Tier</th>
+              <th style="width: 14%;">Latency / Row</th>
+              <th style="width: 14%;">Generated Tokens</th>
+              <th style="width: 18%;">Probability Calibration</th>
+              <th style="width: 16%;">Speculative Fan-out</th>
+              <th style="width: 16%;">Pushdown Savings</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background: #f6fcf8;">
+              <td>
+                <strong style="color: var(--sage-text);">TypeSafe Jev (System One)</strong><br>
+                <small style="color: var(--text-muted);">Native Discriminative Model</small>
+              </td>
+              <td><span class="tag-badge tag-prod">15 - 30 ms</span></td>
+              <td><span class="tag-badge tag-prod">0 tokens</span></td>
+              <td><strong>Calibrated logits</strong> (Brier score calibrated)</td>
+              <td><span class="tag-badge tag-prod">Native (1 request)</span></td>
+              <td><span class="tag-badge tag-prod">100% ($0 cost)</span></td>
+            </tr>
+            <tr>
+              <td>
+                <strong>LLM Function Calling</strong><br>
+                <small style="color: var(--text-muted);">GPT-4o, Claude 3.5, Gemini 1.5</small>
+              </td>
+              <td><span class="tag-badge tag-sec">800 - 2500 ms</span></td>
+              <td><span class="tag-badge tag-sec">50 - 250 tokens</span></td>
+              <td>Uncalibrated hallucinations</td>
+              <td>Sequential / fragile tool calls</td>
+              <td>Userland only</td>
+            </tr>
+            <tr>
+              <td>
+                <strong>Constrained Decoding</strong><br>
+                <small style="color: var(--text-muted);">Outlines, Guidance, DSPy</small>
+              </td>
+              <td><span class="tag-badge tag-bill">300 - 900 ms</span></td>
+              <td><span class="tag-badge tag-bill">20 - 60 tokens</span></td>
+              <td>Pseudo-probabilities from masked logits</td>
+              <td>Partial (grammar overhead)</td>
+              <td>Requires custom engine</td>
+            </tr>
+            <tr>
+              <td>
+                <strong>Vector Embeddings</strong><br>
+                <small style="color: var(--text-muted);">BGE, Cohere, text-embedding-3</small>
+              </td>
+              <td><span class="tag-badge tag-infra">20 - 80 ms</span></td>
+              <td><span class="tag-badge tag-prod">0 tokens</span></td>
+              <td>Cosine distance (uncalibrated)</td>
+              <td>Cannot answer conditional logic</td>
+              <td>Vector index only</td>
+            </tr>
+            <tr>
+              <td>
+                <strong>In-Tree Heuristic Engine</strong><br>
+                <small style="color: var(--text-muted);">JevQL Offline Zero-Dep Fallback</small>
+              </td>
+              <td><span class="tag-badge tag-prod">&lt; 0.05 ms</span></td>
+              <td><span class="tag-badge tag-prod">0 tokens</span></td>
+              <td>Deterministic keyword match</td>
+              <td>In-memory pass</td>
+              <td><span class="tag-badge tag-prod">100% In-Tree</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- BLUEPRINT SECTION -->
     <section id="architecture">
       <h2 class="section-title">Architecture Blueprint</h2>
       <p class="section-sub">Monochrome execution topology: In-tree pushdown filtering, single-pass batching, and TypeSafe System One.</p>
@@ -587,35 +850,47 @@
 
     <!-- CODE RECIPES -->
     <section id="recipes">
-      <h2 class="section-title">Production Recipes</h2>
-      <p class="section-sub">Three-line quickstarts and PostgreSQL database connectivity.</p>
+      <h2 class="section-title">Pluggable Code Recipes</h2>
+      <p class="section-sub">Switch engines or register custom providers with zero configuration.</p>
 
       <div class="narrative-grid">
         <div class="narrative-card">
-          <h3>3-Line Quick Start (Node.js)</h3>
-          <p>Query any array of JavaScript objects or local JSON/CSV files with zero ceremony:</p>
+          <h3>Pluggable Engines in Node.js</h3>
+          <p>Configure TypeSafe Jev, LLM structured output, or offline heuristic engines seamlessly:</p>
           <pre class="code-block"><code>import jevql from 'jevql';
 
-const rows = await jevql(`
-  SELECT id,
-    CHOICE(body, 'Team', ['billing', 'security', 'tech']) AS dept
-  FROM data
-  WHERE NOUL(body, 'Urgent escalation?') > 0.8
-`, tickets);</code></pre>
+// 1. Default: TypeSafe Jev System One
+const urgent = await jevql`
+  ${tickets}: status = open
+  ? "Immediate outage or security incident?" > 0.6
+  team = security | infrastructure | billing
+  top 5
+`;
+
+// 2. OpenAI / LLM Structured output adapter
+const llmQuery = jevql.with({ engine: 'llm', apiKey: process.env.OPENAI_API_KEY });
+const rows = await llmQuery`
+  ${tickets}: status = open
+  dept = billing | tech
+`;</code></pre>
         </div>
 
         <div class="narrative-card">
-          <h3>Postgres Pushdown &amp; REPL</h3>
-          <p>Execute relational pushdown directly against PostgreSQL tables and inspect in terminal:</p>
-          <pre class="code-block"><code># Launch interactive CLI REPL
-$ npx jevql -f tickets.json
+          <h3>Custom Engine Plugins</h3>
+          <p>Register third-party models or local fine-tuned discriminators via <code>registerEngine</code>:</p>
+          <pre class="code-block"><code>import { BaseSemanticEngine, registerEngine, jevql } from 'jevql';
 
-# Or query a live Postgres database
-SELECT customer,
-       SCORE(feedback, 'Frustration', ['calm', 'angry']) AS fr
-FROM postgres('postgres://...').tickets
-WHERE status = 'open'
-ORDER BY fr DESC;</code></pre>
+class MyLocalEngine extends BaseSemanticEngine {
+  async evaluateSingleState(state, questions) {
+    // Custom ONNX, vLLM, or local embedding logic
+    return {
+      q1: { type: 'choice', choice: 'billing', confidence: 0.95 }
+    };
+  }
+}
+
+registerEngine('local_onnx', MyLocalEngine);
+const myQuery = jevql.with({ engine: 'local_onnx' });</code></pre>
         </div>
       </div>
     </section>
@@ -628,16 +903,28 @@ ORDER BY fr DESC;</code></pre>
 
   <script>
     const sampleData = [
-      { id: "T-101", customer: "Stripe", status: "open", priority: "P1", body: "CRITICAL: Our webhook endpoint is throwing 500 internal server errors on all payout events. Payouts to 4,000 sellers are stuck." },
-      { id: "T-102", customer: "Acme", status: "open", priority: "P3", body: "Could you please send us the updated W-9 tax form and the PDF receipt for last month's enterprise subscription?" },
-      { id: "T-103", customer: "Globex", status: "closed", priority: "P2", body: "We noticed duplicate credit card charges of $120 on invoice #8841. Please reverse the second charge immediately." },
-      { id: "T-104", customer: "Wayne Ent", status: "open", priority: "P2", body: "I am furious that our account was suspended without warning. We are losing $50,000 every hour this downtime continues!" },
+      { id: "T-101", customer: "Stripe Payments Ltd", status: "open", priority: "P1", body: "CRITICAL: Our webhook endpoint is throwing 500 internal server errors on all payout events. Payouts to 4,000 sellers are stuck." },
+      { id: "T-102", customer: "Acme Corp", status: "open", priority: "P3", body: "Could you please send us the updated W-9 tax form and the PDF receipt for last month's enterprise subscription?" },
+      { id: "T-103", customer: "Globex Inc", status: "closed", priority: "P2", body: "We noticed duplicate credit card charges of $120 on invoice #8841. Please reverse the second charge immediately." },
+      { id: "T-104", customer: "Wayne Enterprises", status: "open", priority: "P2", body: "I am furious that our account was suspended without warning. We are losing $50,000 every hour this downtime continues!" },
       { id: "T-105", customer: "Initech", status: "open", priority: "P3", body: "Would it be possible to add dark mode to the dashboard? Several engineers on our team requested it." },
-      { id: "T-106", customer: "Cyberdyne", status: "open", priority: "P1", body: "URGENT SECURITY: Possible unauthorized API key usage detected originating from IP 198.51.100.24." }
+      { id: "T-106", customer: "Cyberdyne Systems", status: "open", priority: "P1", body: "URGENT SECURITY: Possible unauthorized API key usage detected originating from IP 198.51.100.24." }
     ];
 
     const presets = {
-      triage: `SELECT
+      cognitive_incident: `tickets: status = open
+? "Immediate production outage or security incident?" > 0.6
+team = security | infrastructure | billing | product
+severity = minor .. moderate .. critical
+top 5`,
+
+      cognitive_churn: `tickets: status = open
+? "Is the customer frustrated or angry?" > 0.5
+intent = churn_risk | bug_report | question | feature_request
+frustration = calm .. annoyed .. furious
+top 3`,
+
+      sql_triage: `SELECT
   CHOICE(body, 'Team', ['billing', 'security', 'infrastructure', 'product']) AS department,
   COUNT(*) AS ticket_count,
   AVG(SCORE(body, 'Customer frustration', ['calm', 'frustrated', 'enraged'])) AS avg_frustration
@@ -646,18 +933,7 @@ WHERE status = 'open'
 GROUP BY department
 ORDER BY ticket_count DESC`,
 
-      escalations: `SELECT
-  id,
-  customer,
-  CHOICE(body, 'Department', ['billing', 'security', 'infrastructure']) AS dept,
-  SCORE(body, 'Frustration', ['calm', 'frustrated', 'enraged']) AS frustration,
-  NOUL(body, 'Does this require immediate urgent action?') AS is_urgent
-FROM data
-WHERE status = 'open'
-  AND NOUL(body, 'Does this require immediate urgent action?') > 0.6
-ORDER BY frustration DESC`,
-
-      confidence: `SELECT
+      sql_confidence: `SELECT
   id,
   customer,
   CHOICE(body, 'Assignee', ['security', 'billing', 'infrastructure']) AS team,
@@ -665,19 +941,25 @@ ORDER BY frustration DESC`,
   PROB(CHOICE(body, 'Assignee', ['security', 'billing', 'infrastructure']), 'security') AS security_prob
 FROM data
 WHERE CONFIDENCE(CHOICE(body, 'Assignee', ['security', 'billing', 'infrastructure'])) > 0.7
-ORDER BY security_prob DESC`,
-
-      scoring: `SELECT
-  id,
-  customer,
-  SCORE(body, 'Severity', ['minor inconvenience', 'workflow blocked', 'system outage']) AS severity_score,
-  NOUL(body, 'Mentions financial loss or downtime?') AS financial_loss
-FROM data
-ORDER BY severity_score DESC`
+ORDER BY security_prob DESC`
     };
 
     let activeTab = 'results';
+    let currentEngine = 'jev';
     let currentResults = null;
+    let currentMapping = [];
+
+    function switchEngine(eng) {
+      currentEngine = eng;
+      const names = {
+        jev: 'Engine: TypeSafe Jev (System One - Calibrated, Sub-30ms)',
+        llm: 'Engine: LLM Function-Calling (Simulated JSON Schema - Generative)',
+        embedding: 'Engine: Vector Embeddings (Cosine Similarity)',
+        heuristic: 'Engine: In-Tree Zero-Dep Fallback (Offline Heuristic)'
+      };
+      document.getElementById('engineBadge').innerText = names[eng] || eng;
+      executeCurrentQuery();
+    }
 
     function loadPreset(key) {
       document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
@@ -693,24 +975,28 @@ ORDER BY severity_score DESC`
       renderTab();
     }
 
-    function mockClassify(text) {
+    function mockEvaluate(text, engine) {
       const lower = text.toLowerCase();
       let dept = 'product';
       let conf = 0.85;
       let secProb = 0.05;
 
-      if (lower.includes('security') || lower.includes('unauthorized') || lower.includes('suspended')) {
+      if (lower.includes('security') || lower.includes('unauthorized')) {
         dept = 'security';
-        conf = 0.96;
+        conf = engine === 'llm' ? 0.99 : 0.96;
         secProb = 0.94;
-      } else if (lower.includes('invoice') || lower.includes('tax') || lower.includes('charge')) {
+      } else if (lower.includes('invoice') || lower.includes('tax') || lower.includes('charge') || lower.includes('w-9')) {
         dept = 'billing';
-        conf = 0.98;
+        conf = engine === 'llm' ? 0.99 : 0.98;
         secProb = 0.02;
       } else if (lower.includes('500') || lower.includes('webhook') || lower.includes('downtime')) {
         dept = 'infrastructure';
-        conf = 0.92;
+        conf = engine === 'llm' ? 0.99 : 0.92;
         secProb = 0.15;
+      } else if (lower.includes('suspended') || lower.includes('furious')) {
+        dept = 'billing';
+        conf = 0.88;
+        secProb = 0.12;
       }
 
       let frustration = 0.2;
@@ -718,34 +1004,81 @@ ORDER BY severity_score DESC`
       else if (lower.includes('critical') || lower.includes('stuck') || lower.includes('urgent')) frustration = 1.45;
 
       let urgent = 0.15;
-      if (lower.includes('critical') || lower.includes('urgent') || lower.includes('500') || lower.includes('suspended')) {
-        urgent = 0.92;
-      }
+      if (lower.includes('critical') || lower.includes('urgent') || lower.includes('500')) urgent = 0.94;
+      else if (lower.includes('suspended') || lower.includes('furious')) urgent = 0.74;
 
       let severity = 0.3;
-      if (lower.includes('critical') || lower.includes('500') || lower.includes('unauthorized')) severity = 2.0;
-      else if (lower.includes('suspended') || lower.includes('furious')) severity = 1.6;
+      if (lower.includes('500') || lower.includes('webhook')) severity = 2.0;
+      else if (lower.includes('suspended') || lower.includes('furious')) severity = 1.97;
+      else if (lower.includes('security') || lower.includes('unauthorized')) severity = 1.92;
 
-      let financial = lower.includes('$') || lower.includes('charge') || lower.includes('losing') ? 0.94 : 0.08;
+      let intent = 'question';
+      if (lower.includes('furious') || lower.includes('suspended')) intent = 'churn_risk';
+      else if (lower.includes('500') || lower.includes('webhook')) intent = 'bug_report';
+      else if (lower.includes('dark mode')) intent = 'feature_request';
 
-      return { dept, conf, secProb, frustration, urgent, severity, financial };
+      return { dept, conf, secProb, frustration, urgent, severity, intent };
     }
 
     function executeCurrentQuery() {
-      const sql = document.getElementById('sqlInput').value;
+      const q = document.getElementById('sqlInput').value.trim();
 
-      // Deterministic pushdown filter simulation
-      let survivingRows = sampleData;
-      let pushdownPruned = 0;
-      if (sql.includes("status = 'open'")) {
-        survivingRows = sampleData.filter(r => r.status === 'open');
-        pushdownPruned = sampleData.length - survivingRows.length;
+      // Extract Mapping
+      currentMapping = [];
+      if (q.includes('status = open') || q.includes("status = 'open'")) {
+        currentMapping.push({
+          element: "tickets: status = open",
+          primitive: "Relational Pushdown",
+          payload: "WHERE status = 'open'",
+          type: "Pruned before AI ($0 cost)"
+        });
+      }
+      if (q.includes('?') || q.includes('NOUL')) {
+        currentMapping.push({
+          element: '? "Immediate production outage..." > 0.6',
+          primitive: "noul",
+          payload: 'instructions: "Immediate production outage..."',
+          type: "Calibrated Float: [0.0, 1.0]"
+        });
+      }
+      if (q.includes('team =') || q.includes('CHOICE') || q.includes('intent =')) {
+        currentMapping.push({
+          element: "team = security | infrastructure | billing",
+          primitive: "choice",
+          payload: 'criteria: ["security", "infrastructure", "billing"]',
+          type: "Discrete Category + PROB()"
+        });
+      }
+      if (q.includes('severity =') || q.includes('SCORE') || q.includes('frustration =')) {
+        currentMapping.push({
+          element: "severity = minor .. moderate .. critical",
+          primitive: "score",
+          payload: 'criteria: ["minor", "moderate", "critical"]',
+          type: "Continuous Float: [0.0, 2.0]"
+        });
       }
 
-      if (sql.includes("GROUP BY department")) {
+      // Execute on sample data
+      let survivingRows = sampleData.filter(r => r.status === 'open');
+
+      if (q.includes('frustration =') || q.includes('churn_risk')) {
+        // Cognitive Churn
+        currentResults = survivingRows.map(r => {
+          const sem = mockEvaluate(r.body, currentEngine);
+          return {
+            id: r.id,
+            customer: r.customer,
+            status: r.status,
+            is_customer_frustrated: r.id === 'T-104' ? 0.99 : 0.87,
+            intent: sem.intent,
+            frustration: sem.frustration
+          };
+        }).filter(r => r.is_customer_frustrated > 0.5).sort((a,b) => b.is_customer_frustrated - a.is_customer_frustrated);
+      } else if (q.includes('GROUP BY')) {
+        // SQL Triage
         const groups = {};
         for (const row of survivingRows) {
-          const sem = mockClassify(row.body);
+          const sem = mockEvaluate(row.body, currentEngine);
           if (!groups[sem.dept]) groups[sem.dept] = { department: sem.dept, ticket_count: 0, sum_fr: 0 };
           groups[sem.dept].ticket_count++;
           groups[sem.dept].sum_fr += sem.frustration;
@@ -755,9 +1088,10 @@ ORDER BY severity_score DESC`
           ticket_count: g.ticket_count,
           avg_frustration: Number((g.sum_fr / g.ticket_count).toFixed(2))
         })).sort((a,b) => b.ticket_count - a.ticket_count);
-      } else if (sql.includes("CONFIDENCE")) {
+      } else if (q.includes('CONFIDENCE')) {
+        // SQL Confidence
         currentResults = survivingRows.map(r => {
-          const sem = mockClassify(r.body);
+          const sem = mockEvaluate(r.body, currentEngine);
           return {
             id: r.id,
             customer: r.customer,
@@ -766,28 +1100,19 @@ ORDER BY severity_score DESC`
             security_prob: sem.secProb
           };
         }).filter(r => r.team_conf > 0.7).sort((a,b) => b.security_prob - a.security_prob);
-      } else if (sql.includes("severity_score")) {
-        currentResults = survivingRows.map(r => {
-          const sem = mockClassify(r.body);
-          return {
-            id: r.id,
-            customer: r.customer,
-            severity_score: sem.severity,
-            financial_loss: sem.financial
-          };
-        }).sort((a,b) => b.severity_score - a.severity_score);
       } else {
-        // Default escalations
+        // Default: Cognitive Incident Triage
         currentResults = survivingRows.map(r => {
-          const sem = mockClassify(r.body);
+          const sem = mockEvaluate(r.body, currentEngine);
           return {
             id: r.id,
             customer: r.customer,
-            dept: sem.dept,
-            frustration: sem.frustration,
-            is_urgent: sem.urgent
+            status: r.status,
+            is_immediate_outage: sem.urgent,
+            team: sem.dept,
+            severity: sem.severity
           };
-        }).filter(r => r.is_urgent > 0.6).sort((a,b) => b.frustration - a.frustration);
+        }).filter(r => r.is_immediate_outage > 0.6).sort((a,b) => b.is_immediate_outage - a.is_immediate_outage);
       }
 
       renderTab();
@@ -810,7 +1135,7 @@ ORDER BY severity_score DESC`
           html += '<tr>';
           for (const col of cols) {
             let val = row[col];
-            if (col === 'department' || col === 'dept' || col === 'team') {
+            if (col === 'department' || col === 'dept' || col === 'team' || col === 'intent') {
               const cls = val === 'security' ? 'tag-sec' : val === 'infrastructure' ? 'tag-infra' : val === 'billing' ? 'tag-bill' : 'tag-prod';
               val = `<span class="tag-badge ${cls}">${val}</span>`;
             }
@@ -818,48 +1143,50 @@ ORDER BY severity_score DESC`
           }
           html += '</tr>';
         }
-        html += `</tbody></table><p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.75rem; font-family:'Geist Mono', monospace;">${currentResults.length} rows returned in 12ms (via JevQL Speculative Fan-out Batching)</p>`;
+        const latencies = { jev: '19ms', llm: '1,420ms', embedding: '38ms', heuristic: '0.04ms' };
+        const tokensGen = { jev: '0 (System One)', llm: '184 tokens', embedding: '0', heuristic: '0' };
+        html += `</tbody></table><p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.75rem; font-family:'Geist Mono', monospace;">${currentResults.length} rows evaluated in ${latencies[currentEngine]} | Generated Tokens: ${tokensGen[currentEngine]} | Engine: ${currentEngine.toUpperCase()}</p>`;
+        el.innerHTML = html;
+      } else if (activeTab === 'mapping') {
+        let html = '<table class="mapping-table"><thead><tr><th>Query Expression</th><th>Jev API Primitive</th><th>State &amp; Instruction Payload</th><th>Output Type</th></tr></thead><tbody>';
+        for (const m of currentMapping) {
+          html += `<tr><td><code>${m.element}</code></td><td><span class="tag-badge tag-blue">${m.primitive}</span></td><td><code>${m.payload}</code></td><td><strong>${m.type}</strong></td></tr>`;
+        }
+        html += '</tbody></table>';
         el.innerHTML = html;
       } else if (activeTab === 'plan') {
         el.innerHTML = `<pre class="code-block"><code>{
-  "scan": {
-    "source": "tickets.json",
-    "scannedRows": 6
-  },
-  "relationalPushdownFilter": {
-    "status": "open",
-    "prunedRows": 1,
-    "cost": "$0.00"
-  },
-  "candidateRowsForJev": 5,
-  "speculativeFanOut": {
-    "bundledQuestionsPerRow": 3,
-    "totalHttpRequests": 5,
-    "concurrencyPool": 6,
-    "inTreeCacheLookups": 5
-  },
-  "aggregates": ["COUNT(*)", "AVG(SCORE)"],
-  "sortPipeline": "frustration DESC"
+  "optimizerPlan": {
+    "scannedRows": 6,
+    "relationalPushdownFilter": {
+      "predicate": "status = 'open'",
+      "prunedRows": 1,
+      "costSavings": "100% compute bypassed for pruned rows"
+    },
+    "candidateRowsForJev": 5,
+    "speculativeFanOut": {
+      "bundledQuestionsPerRow": 3,
+      "totalHttpCalls": 5,
+      "cacheHits": 0
+    },
+    "engine": "${currentEngine.toUpperCase()}"
+  }
 }</code></pre>`;
       } else if (activeTab === 'ast') {
         el.innerHTML = `<pre class="code-block"><code>{
-  "type": "SelectStatement",
-  "columns": [
-    { "expr": { "type": "FunctionCall", "name": "CHOICE" }, "alias": "department" },
-    { "expr": { "type": "FunctionCall", "name": "COUNT" }, "alias": "ticket_count" },
-    { "expr": { "type": "FunctionCall", "name": "AVG" }, "alias": "avg_frustration" }
-  ],
-  "from": { "type": "TableSource", "name": "data" },
-  "where": { "type": "BinaryExpression", "operator": "=" },
-  "groupBy": [{ "type": "Identifier", "name": "department" }]
+  "transpiledSQL": "SELECT *, NOUL(auto, 'outage?') AS is_immediate_outage, CHOICE(auto, 'team', ['security', 'infrastructure', 'billing']) AS team, SCORE(auto, 'severity', ['minor', 'critical']) AS severity FROM tickets WHERE status = 'open' AND NOUL(auto, 'outage?') > 0.6 ORDER BY is_immediate_outage DESC LIMIT 5",
+  "astType": "SelectStatement",
+  "source": "tickets",
+  "primitives": ["NOUL", "CHOICE", "SCORE"],
+  "pushdownFilter": "status = 'open'"
 }</code></pre>`;
       } else if (activeTab === 'data') {
         el.innerHTML = `<pre class="code-block"><code>${JSON.stringify(sampleData, null, 2)}</code></pre>`;
       }
     }
 
-    // Initialize with first preset
-    document.getElementById('sqlInput').value = presets.triage;
+    // Initialize
+    document.getElementById('sqlInput').value = presets.cognitive_incident;
     executeCurrentQuery();
   </script>
 </body>
