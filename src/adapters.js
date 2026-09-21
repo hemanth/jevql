@@ -11,7 +11,7 @@ export class DataAdapter {
     this.sources[name.toLowerCase()] = data;
   }
 
-  async loadSource(sourceNode, baseDir = process.cwd()) {
+  async loadSource(sourceNode, baseDir = (typeof process !== 'undefined' && process.cwd ? process.cwd() : '')) {
     if (!sourceNode) {
       // Default dummy table if no FROM clause
       return [{ dummy: 1 }];

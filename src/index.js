@@ -1,9 +1,10 @@
-import { parse } from './parser.js';
+import { parse, tokenize } from './parser.js';
 import { JevClient } from './jev.js';
 import { DataAdapter } from './adapters.js';
 import { Executor } from './executor.js';
 import { formatTable, formatCSV, parseCSV } from './utils.js';
 import { pipelineToSQL, isPipelineQuery } from './pipeline.js';
+import { createQueryPlan, splitWhereClause, defaultEvalLiteral } from './planner.js';
 
 class JevQLDatabase {
   constructor(initialData = null, options = {}) {
@@ -26,6 +27,10 @@ class JevQLDatabase {
   register(name, data) {
     this.adapter.registerTable(name, data);
     return this;
+  }
+
+  registerTable(name, data) {
+    return this.register(name, data);
   }
 
   async query(queryText, data = null) {
@@ -174,11 +179,16 @@ jevql.with = function(options = {}) {
   };
 };
 
-// Named exports
 export {
   jevql,
   JevQLDatabase,
   parse,
+  tokenize,
+  isPipelineQuery,
+  pipelineToSQL,
+  createQueryPlan,
+  splitWhereClause,
+  defaultEvalLiteral,
   JevClient,
   DataAdapter,
   Executor,

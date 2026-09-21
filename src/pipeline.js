@@ -70,7 +70,7 @@ export function isPipelineQuery(text) {
   return lines.some(line => nlKeywords.some(kw => line.startsWith(kw)));
 }
 
-function splitClausesRespectingBrackets(str) {
+function splitClausesRespectingBrackets(str, delimiter = ',') {
   const clauses = [];
   let current = '';
   let depth = 0;
@@ -91,7 +91,7 @@ function splitClausesRespectingBrackets(str) {
     if (!inQuotes) {
       if (char === '[' || char === '{' || char === '(') depth++;
       else if (char === ']' || char === '}' || char === ')') depth--;
-      else if (char === ',' && depth === 0) {
+      else if (char === delimiter && depth === 0) {
         if (current.trim()) clauses.push(current.trim());
         current = '';
         continue;
@@ -156,10 +156,10 @@ export function pipelineToSQL(queryStr) {
     rawStages = text.split('\n')
       .map(p => p.trim().replace(/^([#]|--).*$/, '').trim())
       .filter(Boolean);
-  } else if (text.includes('|') && !text.includes(',')) {
-    rawStages = text.split('|').map(p => p.trim()).filter(Boolean);
+  } else if (text.includes('|')) {
+    rawStages = splitClausesRespectingBrackets(text, '|');
   } else {
-    rawStages = splitClausesRespectingBrackets(text);
+    rawStages = splitClausesRespectingBrackets(text, ',');
   }
 
   let source = null;

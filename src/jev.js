@@ -58,7 +58,7 @@ export class TypeSafeJevEngine extends BaseSemanticEngine {
   constructor(options = {}) {
     super(options);
     this.name = 'jev';
-    this.apiKey = options.apiKey || process.env.TYPESAFE_API_KEY || '';
+    this.apiKey = options.apiKey || (typeof process !== 'undefined' && process.env?.TYPESAFE_API_KEY) || '';
     this.apiUrl = options.apiUrl || 'https://api.typesafe.ai/v1/systemone';
     this.model = options.model || 'jev-latest';
     this.fallbackEngine = new HeuristicEngine(options);
@@ -120,7 +120,7 @@ export class LLMStructuredEngine extends BaseSemanticEngine {
   constructor(options = {}) {
     super(options);
     this.name = 'llm';
-    this.apiKey = options.apiKey || process.env.OPENAI_API_KEY || '';
+    this.apiKey = options.apiKey || (typeof process !== 'undefined' && process.env?.OPENAI_API_KEY) || '';
     this.apiUrl = options.apiUrl || 'https://api.openai.com/v1/chat/completions';
     this.model = options.model || 'gpt-4o-mini';
   }

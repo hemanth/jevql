@@ -99,10 +99,27 @@ export function splitWhereClause(whereNode) {
   };
 }
 
+export function defaultEvalLiteral(node) {
+  if (!node) return null;
+  if (node.type === 'Literal') return node.value;
+  if (node.type === 'ArrayLiteral') {
+    return (node.elements || []).map(defaultEvalLiteral);
+  }
+  if (node.type === 'ObjectLiteral') {
+    const obj = {};
+    for (const [k, v] of Object.entries(node.properties || {})) {
+      obj[k] = defaultEvalLiteral(v);
+    }
+    return obj;
+  }
+  if (node.type === 'Identifier') return node.name;
+  return node.value ?? null;
+}
+
 /**
  * Converts a Semantic AST FunctionCall into a standardized TypeSafe Question descriptor.
  */
-export function buildQuestionDescriptor(fnNode, evalLiteralFn) {
+export function buildQuestionDescriptor(fnNode, evalLiteralFn = defaultEvalLiteral) {
   const fnName = fnNode.name.toUpperCase();
   const args = fnNode.arguments;
 
@@ -161,7 +178,7 @@ export function buildQuestionDescriptor(fnNode, evalLiteralFn) {
 /**
  * Builds an execution plan for a SELECT statement AST.
  */
-export function createQueryPlan(ast, evalLiteralFn) {
+export function createQueryPlan(ast, evalLiteralFn = defaultEvalLiteral) {
   // Build alias map from SELECT columns
   const aliasMap = new Map();
   for (const col of ast.columns) {

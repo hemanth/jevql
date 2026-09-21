@@ -69,6 +69,12 @@ const indexCode = getModuleBody('index.js');
 const bundle = `// JevQL In-Browser Standalone Engine (Zero External Dependencies)
 // Generated for GitHub Pages Interactive Workbench
 
+// Browser environment shim
+const _globalProcess = typeof globalThis !== 'undefined' && globalThis.process
+  ? globalThis.process
+  : { env: {}, cwd: () => '' };
+const process = _globalProcess;
+
 ${utilsCode}
 
 ${adaptersCode}
@@ -96,6 +102,7 @@ export {
   pipelineToSQL,
   createQueryPlan,
   splitWhereClause,
+  defaultEvalLiteral,
   JevClient,
   registerEngine,
   createEngine

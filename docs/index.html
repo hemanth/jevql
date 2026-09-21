@@ -1084,7 +1084,7 @@ ORDER BY security_prob DESC`
                 `✓ Executed in ${elapsed}ms | Evaluated: ${evaluated} rows | Pruned via Pushdown: ${pruned} rows ($0 cost) | Engine: ${currentEngine.toUpperCase()}</p>`;
         el.innerHTML = html;
       } else if (activeTab === 'mapping') {
-        const plan = createQueryPlan(currentAST, (node) => node?.value ?? node?.name);
+        const plan = createQueryPlan(currentAST);
         let html = '<table class="mapping-table"><thead><tr><th>AST Query Expression</th><th>Jev API Primitive</th><th>Payload (TypeSafe Contract)</th><th>Output Type</th></tr></thead><tbody>';
 
         if (plan.pushdownFilter) {

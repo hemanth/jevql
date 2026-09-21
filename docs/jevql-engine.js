@@ -1,6 +1,12 @@
 // JevQL In-Browser Standalone Engine (Zero External Dependencies)
 // Generated for GitHub Pages Interactive Workbench
 
+// Browser environment shim
+const _globalProcess = typeof globalThis !== 'undefined' && globalThis.process
+  ? globalThis.process
+  : { env: {}, cwd: () => '' };
+const process = _globalProcess;
+
 
 // Browser-compatible sha256
 function sha256(content) {
@@ -1194,7 +1200,7 @@ function isPipelineQuery(text) {
   return lines.some(line => nlKeywords.some(kw => line.startsWith(kw)));
 }
 
-function splitClausesRespectingBrackets(str) {
+function splitClausesRespectingBrackets(str, delimiter = ',') {
   const clauses = [];
   let current = '';
   let depth = 0;
@@ -1215,7 +1221,7 @@ function splitClausesRespectingBrackets(str) {
     if (!inQuotes) {
       if (char === '[' || char === '{' || char === '(') depth++;
       else if (char === ']' || char === '}' || char === ')') depth--;
-      else if (char === ',' && depth === 0) {
+      else if (char === delimiter && depth === 0) {
         if (current.trim()) clauses.push(current.trim());
         current = '';
         continue;
@@ -1280,10 +1286,10 @@ function pipelineToSQL(queryStr) {
     rawStages = text.split('\n')
       .map(p => p.trim().replace(/^([#]|--).*$/, '').trim())
       .filter(Boolean);
-  } else if (text.includes('|') && !text.includes(',')) {
-    rawStages = text.split('|').map(p => p.trim()).filter(Boolean);
+  } else if (text.includes('|')) {
+    rawStages = splitClausesRespectingBrackets(text, '|');
   } else {
-    rawStages = splitClausesRespectingBrackets(text);
+    rawStages = splitClausesRespectingBrackets(text, ',');
   }
 
   let source = null;
@@ -1873,10 +1879,27 @@ function splitWhereClause(whereNode) {
   };
 }
 
+function defaultEvalLiteral(node) {
+  if (!node) return null;
+  if (node.type === 'Literal') return node.value;
+  if (node.type === 'ArrayLiteral') {
+    return (node.elements || []).map(defaultEvalLiteral);
+  }
+  if (node.type === 'ObjectLiteral') {
+    const obj = {};
+    for (const [k, v] of Object.entries(node.properties || {})) {
+      obj[k] = defaultEvalLiteral(v);
+    }
+    return obj;
+  }
+  if (node.type === 'Identifier') return node.name;
+  return node.value ?? null;
+}
+
 /**
  * Converts a Semantic AST FunctionCall into a standardized TypeSafe Question descriptor.
  */
-function buildQuestionDescriptor(fnNode, evalLiteralFn) {
+function buildQuestionDescriptor(fnNode, evalLiteralFn = defaultEvalLiteral) {
   const fnName = fnNode.name.toUpperCase();
   const args = fnNode.arguments;
 
@@ -1935,7 +1958,7 @@ function buildQuestionDescriptor(fnNode, evalLiteralFn) {
 /**
  * Builds an execution plan for a SELECT statement AST.
  */
-function createQueryPlan(ast, evalLiteralFn) {
+function createQueryPlan(ast, evalLiteralFn = defaultEvalLiteral) {
   // Build alias map from SELECT columns
   const aliasMap = new Map();
   for (const col of ast.columns) {
@@ -2101,7 +2124,7 @@ class TypeSafeJevEngine extends BaseSemanticEngine {
   constructor(options = {}) {
     super(options);
     this.name = 'jev';
-    this.apiKey = options.apiKey || process.env.TYPESAFE_API_KEY || '';
+    this.apiKey = options.apiKey || (typeof process !== 'undefined' && process.env?.TYPESAFE_API_KEY) || '';
     this.apiUrl = options.apiUrl || 'https://api.typesafe.ai/v1/systemone';
     this.model = options.model || 'jev-latest';
     this.fallbackEngine = new HeuristicEngine(options);
@@ -2163,7 +2186,7 @@ class LLMStructuredEngine extends BaseSemanticEngine {
   constructor(options = {}) {
     super(options);
     this.name = 'llm';
-    this.apiKey = options.apiKey || process.env.OPENAI_API_KEY || '';
+    this.apiKey = options.apiKey || (typeof process !== 'undefined' && process.env?.OPENAI_API_KEY) || '';
     this.apiUrl = options.apiUrl || 'https://api.openai.com/v1/chat/completions';
     this.model = options.model || 'gpt-4o-mini';
   }
@@ -3081,6 +3104,7 @@ class Executor {
 
 
 
+
 class JevQLDatabase {
   constructor(initialData = null, options = {}) {
     this.options = { ...options };
@@ -3102,6 +3126,10 @@ class JevQLDatabase {
   register(name, data) {
     this.adapter.registerTable(name, data);
     return this;
+  }
+
+  registerTable(name, data) {
+    return this.register(name, data);
   }
 
   async query(queryText, data = null) {
@@ -3250,7 +3278,6 @@ jevql.with = function(options = {}) {
   };
 };
 
-// Named exports
 
 
 
@@ -3263,6 +3290,7 @@ export {
   pipelineToSQL,
   createQueryPlan,
   splitWhereClause,
+  defaultEvalLiteral,
   JevClient,
   registerEngine,
   createEngine
