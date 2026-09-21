@@ -1,157 +1,75 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" width="1000" height="620" style="background:#ffffff; font-family:'Geist Mono', 'SF Mono', Monaco, monospace;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 260" width="960" height="260" style="background:#ffffff; font-family:'Geist Mono', 'SF Mono', Monaco, monospace;">
   <defs>
     <style>
-      .hdr { font-size: 11px; font-weight: 700; letter-spacing: 0.16em; fill: #000000; text-transform: uppercase; }
-      .lbl { font-size: 12px; font-weight: 600; fill: #000000; }
+      .hdr { font-size: 10px; font-weight: 700; letter-spacing: 0.16em; fill: #000000; text-transform: uppercase; }
+      .lbl { font-size: 13px; font-weight: 700; fill: #000000; letter-spacing: -0.01em; }
       .sub { font-size: 10px; fill: #555555; }
-      .wht-lbl { font-size: 13px; font-weight: 700; fill: #ffffff; letter-spacing: 0.05em; }
+      .wht-lbl { font-size: 13px; font-weight: 700; fill: #ffffff; letter-spacing: -0.01em; }
       .wht-sub { font-size: 10px; fill: #cccccc; }
-      .tag { font-size: 9px; font-weight: 600; fill: #000000; }
+      .tag { font-size: 8px; font-weight: 700; fill: #000000; letter-spacing: 0.05em; }
+      .wht-tag { font-size: 8px; font-weight: 700; fill: #ffffff; letter-spacing: 0.05em; }
       .stroke-base { stroke: #000000; stroke-width: 1.2px; fill: none; }
-      .stroke-dashed { stroke: #000000; stroke-width: 1.2px; stroke-dasharray: 4,4; fill: none; }
       .card-white { fill: #ffffff; stroke: #000000; stroke-width: 1.2px; }
       .card-black { fill: #000000; stroke: #000000; stroke-width: 1.2px; }
-      .badge { fill: #ffffff; stroke: #000000; stroke-width: 1px; }
+      .badge { fill: #ffffff; stroke: #000000; stroke-width: 0.8px; }
+      .badge-black { fill: #000000; stroke: #ffffff; stroke-width: 0.8px; }
     </style>
+    <marker id="arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#000000" />
+    </marker>
   </defs>
 
-  <!-- Title Section -->
-  <text x="40" y="45" class="hdr">JEVQL ARCHITECTURAL EXECUTION &amp; OPTIMIZATION BLUEPRINT</text>
-  <line x1="40" y1="58" x2="960" y2="58" class="stroke-base" />
+  <!-- Title Header -->
+  <text x="32" y="32" class="hdr">JEVQL COMPILER &amp; SYSTEM ONE EXECUTION TOPOLOGY</text>
+  <line x1="32" y1="42" x2="928" y2="42" class="stroke-base" />
 
-  <!-- INPUT CLUSTER -->
-  <rect x="40" y="80" width="220" height="490" rx="6" class="card-white" />
-  <text x="55" y="105" class="hdr">1. DECLARATIVE INPUT</text>
+  <!-- STAGE 1: DECLARATIVE INPUT -->
+  <rect x="32" y="66" width="190" height="135" rx="6" class="card-white" />
+  <rect x="44" y="78" width="56" height="16" rx="2" class="badge" />
+  <text x="50" y="89" class="tag">01 · INPUT</text>
+  <text x="44" y="120" class="lbl">Query &amp; Source</text>
+  <text x="44" y="142" class="sub">• Cognitive / SQL Syntax</text>
+  <text x="44" y="158" class="sub">• In-Memory / PostgreSQL</text>
+  <text x="44" y="174" class="sub">• JSON / CSV Streams</text>
 
-  <!-- Input Card 1: SQL Query -->
-  <rect x="55" y="125" width="190" height="155" rx="4" class="card-white" />
-  <text x="70" y="148" class="lbl">SQL with Jev Primitives</text>
-  <text x="70" y="166" class="sub">SELECT customer, dept,</text>
-  <text x="70" y="180" class="sub">  CHOICE(...) AS dept,</text>
-  <text x="70" y="194" class="sub">  SCORE(...) AS urgency</text>
-  <text x="70" y="208" class="sub">FROM 'tickets.json'</text>
-  <text x="70" y="222" class="sub">WHERE status = 'open'</text>
-  <text x="70" y="236" class="sub">  AND NOUL(...) > 0.8</text>
-  <text x="70" y="250" class="sub">GROUP BY dept</text>
-  <rect x="175" y="132" width="60" height="18" rx="2" class="badge" />
-  <text x="183" y="145" class="tag">PARSER</text>
+  <!-- Connector 1 -->
+  <line x1="222" y1="133" x2="260" y2="133" class="stroke-base" marker-end="url(#arr)" />
 
-  <!-- Input Card 2: Heterogeneous Data Sources -->
-  <rect x="55" y="300" width="190" height="140" rx="4" class="card-white" />
-  <text x="70" y="325" class="lbl">Data Sources</text>
-  <text x="70" y="348" class="sub">• In-Memory Arrays</text>
-  <text x="70" y="366" class="sub">• JSON / JSONL Records</text>
-  <text x="70" y="384" class="sub">• CSV Delimited Files</text>
-  <text x="70" y="402" class="sub">• Live PostgreSQL Database</text>
-  <text x="70" y="420" class="sub">• SQLite / Local Tables</text>
+  <!-- STAGE 2: RELATIONAL PUSHDOWN -->
+  <rect x="264" y="66" width="205" height="135" rx="6" class="card-white" />
+  <rect x="276" y="78" width="82" height="16" rx="2" class="badge" />
+  <text x="282" y="89" class="tag">02 · OPTIMIZE</text>
+  <text x="276" y="120" class="lbl">Relational Pushdown</text>
+  <text x="276" y="142" class="sub">• AST Predicate Partitioning</text>
+  <text x="276" y="158" class="sub">• Drops Non-Matching Rows</text>
+  <text x="276" y="174" class="sub" style="font-weight:700; fill:#000000;">• $0 Model Cost for Filtered</text>
 
-  <!-- Input Card 3: AST Generator -->
-  <rect x="55" y="460" width="190" height="90" rx="4" class="card-white" />
-  <text x="70" y="485" class="lbl">Lexer &amp; Parser AST</text>
-  <text x="70" y="505" class="sub">• Syntax tree validation</text>
-  <text x="70" y="523" class="sub">• Extract literal criteria</text>
-  <text x="70" y="541" class="sub">• Identify column scopes</text>
+  <!-- Connector 2 -->
+  <line x1="469" y1="133" x2="507" y2="133" class="stroke-base" marker-end="url(#arr)" />
 
+  <!-- STAGE 3: THE SIGNATURE INVERTED FOCAL CARD (JEV SYSTEM ONE ENGINE) -->
+  <rect x="511" y="58" width="235" height="151" rx="6" class="card-black" />
+  <rect x="525" y="72" width="102" height="16" rx="2" class="badge-black" />
+  <text x="531" y="83" class="wht-tag">03 · SYSTEM ONE</text>
+  <text x="525" y="116" class="wht-lbl">Speculative Fan-Out</text>
+  <text x="525" y="138" class="wht-sub">• Bundles N questions in 1 call</text>
+  <text x="525" y="154" class="wht-sub">• NOUL, CHOICE &amp; SCORE pass</text>
+  <text x="525" y="170" class="wht-sub">• SHA-256 Memory Cache (&lt;0.05ms)</text>
+  <text x="525" y="186" class="wht-sub" style="font-weight:700; fill:#ffffff;">• 12x Cheaper &amp; 0 Tokens Gen</text>
 
-  <!-- IN-TREE PLANNER & PUSHDOWN (MIDDLE COLUMN) -->
-  <rect x="290" y="80" width="370" height="210" rx="6" class="card-white" />
-  <text x="305" y="105" class="hdr">2. QUERY PLANNER &amp; PUSHDOWN</text>
+  <!-- Connector 3 -->
+  <line x1="746" y1="133" x2="784" y2="133" class="stroke-base" marker-end="url(#arr)" />
 
-  <!-- Pushdown Pruner Box -->
-  <rect x="305" y="125" width="165" height="145" rx="4" class="card-white" />
-  <text x="318" y="148" class="lbl">Relational Pushdown</text>
-  <text x="318" y="168" class="sub">Filters non-matching rows</text>
-  <text x="318" y="184" class="sub">BEFORE calling AI models</text>
-  <text x="318" y="206" class="sub">• status = 'open'</text>
-  <text x="318" y="222" class="sub">• priority = 'P1'</text>
-  <text x="318" y="244" class="sub" style="font-weight:700; fill:#000;">Zero Model Cost ($0)</text>
+  <!-- STAGE 4: STRUCTURED OUTPUT -->
+  <rect x="788" y="66" width="140" height="135" rx="6" class="card-white" />
+  <rect x="800" y="78" width="68" height="16" rx="2" class="badge" />
+  <text x="806" y="89" class="tag">04 · OUTPUT</text>
+  <text x="800" y="120" class="lbl">Typed Rows</text>
+  <text x="800" y="142" class="sub">• Calibrated floats</text>
+  <text x="800" y="158" class="sub">• Discrete winners</text>
+  <text x="800" y="174" class="sub">• Aggregations</text>
 
-  <!-- Speculative Fan-out Box -->
-  <rect x="480" y="125" width="165" height="145" rx="4" class="card-white" />
-  <text x="493" y="148" class="lbl">Speculative Fan-Out</text>
-  <text x="493" y="168" class="sub">Combines multiple Jev</text>
-  <text x="493" y="184" class="sub">questions per surviving row</text>
-  <text x="493" y="206" class="sub">• 1 single HTTP payload</text>
-  <text x="493" y="222" class="sub">• Parallel evaluations</text>
-  <text x="493" y="244" class="sub" style="font-weight:700; fill:#000;">12x Cheaper &amp; Faster</text>
-
-
-  <!-- THE SIGNATURE INVERTED FOCAL CARD (CENTRAL ARBITER) -->
-  <rect x="290" y="320" width="370" height="110" rx="6" class="card-black" />
-  <text x="310" y="352" class="wht-lbl">JEVQL OPTIMIZER &amp; BATCH ENGINE</text>
-  <text x="310" y="374" class="wht-sub">Central execution coordinator. Schedules concurrent row batches,</text>
-  <text x="310" y="390" class="wht-sub">enforces rate-limiting backoff, queries SHA-256 LRU cache,</text>
-  <text x="310" y="406" class="wht-sub">and coordinates semantic predicates with relational aggregates.</text>
-
-
-  <!-- LOCAL IN-TREE EXECUTION (BOTTOM MIDDLE) -->
-  <rect x="290" y="455" width="370" height="115" rx="6" class="card-white" />
-  <text x="305" y="478" class="hdr">3. RELATIONAL ARBITER &amp; CACHE</text>
-
-  <rect x="305" y="490" width="165" height="65" rx="4" class="card-white" />
-  <text x="318" y="512" class="lbl">SHA-256 Memory Cache</text>
-  <text x="318" y="530" class="sub">Instant &lt;0.05ms hit rate</text>
-  <text x="318" y="544" class="sub">Avoids duplicate tokens</text>
-
-  <rect x="480" y="490" width="165" height="65" rx="4" class="card-white" />
-  <text x="493" y="512" class="lbl">PostgreSQL Semantics</text>
-  <text x="493" y="530" class="sub">GROUP BY, HAVING, ORDER</text>
-  <text x="493" y="544" class="sub">COUNT, AVG, SUM, LIMIT</text>
-
-
-  <!-- EXTERNAL CLOUD SYSTEM ONE RUNTIME (RIGHT COLUMN - DASHED) -->
-  <rect x="690" y="80" width="270" height="290" rx="6" class="card-white stroke-dashed" />
-  <text x="705" y="105" class="hdr">TYPESAFE SYSTEM ONE (JEV)</text>
-
-  <!-- Jev Primitive 1: Noul -->
-  <rect x="705" y="125" width="240" height="65" rx="4" class="card-white" />
-  <text x="720" y="148" class="lbl">NOUL(col, 'prompt')</text>
-  <text x="720" y="165" class="sub">Yes/No probability scalar [0.0, 1.0]</text>
-  <text x="720" y="179" class="sub">Predicate gating: WHERE NOUL(...) > 0.8</text>
-
-  <!-- Jev Primitive 2: Choice -->
-  <rect x="705" y="200" width="240" height="65" rx="4" class="card-white" />
-  <text x="720" y="223" class="lbl">CHOICE(col, 'prompt', criteria)</text>
-  <text x="720" y="240" class="sub">Categorical distribution &amp; winning label</text>
-  <text x="720" y="254" class="sub">Enables GROUP BY CHOICE(...) AS dept</text>
-
-  <!-- Jev Primitive 3: Score -->
-  <rect x="705" y="275" width="240" height="80" rx="4" class="card-white" />
-  <text x="720" y="298" class="lbl">SCORE(col, 'prompt', levels)</text>
-  <text x="720" y="315" class="sub">Calibrated continuous score spectrum</text>
-  <text x="720" y="329" class="sub">Enables ORDER BY SCORE(...) DESC</text>
-  <text x="720" y="343" class="sub">CONFIDENCE(expr) calibration gating</text>
-
-
-  <!-- FINAL OUTPUT CONTAINER -->
-  <rect x="690" y="390" width="270" height="180" rx="6" class="card-white" />
-  <text x="705" y="415" class="hdr">4. OUTPUT PROJECTION</text>
-  <text x="705" y="440" class="lbl">Deterministic Results</text>
-  <text x="705" y="460" class="sub">• Formatted ASCII / Unicode Tables</text>
-  <text x="705" y="478" class="sub">• JSON Object Streams</text>
-  <text x="705" y="496" class="sub">• CSV Delimited Exports</text>
-  <text x="705" y="514" class="sub">• Telemetry (Tokens, Hits, Latency)</text>
-  <rect x="705" y="530" width="240" height="28" rx="3" class="card-black" />
-  <text x="735" y="548" class="wht-lbl" style="font-size:11px;">100% TYPED &amp; REPRODUCIBLE</text>
-
-
-  <!-- ORTHOGONAL ROUTING CONNECTORS -->
-  <!-- 1. Query to Planner -->
-  <path d="M 245 190 L 290 190" class="stroke-base" />
-
-  <!-- 2. Planner to Inverted Focal Card -->
-  <path d="M 475 290 L 475 320" class="stroke-base" />
-
-  <!-- 3. Focal Card to Cache / In-Tree -->
-  <path d="M 475 430 L 475 455" class="stroke-base" />
-
-  <!-- 4. Focal Card to External Jev Cloud -->
-  <path d="M 660 360 L 675 360 Q 685 360 685 240 L 705 240" class="stroke-base" />
-
-  <!-- 5. Cloud Jev back to Focal Engine -->
-  <path d="M 705 270 L 680 270 Q 670 270 670 380 L 660 380" class="stroke-base" />
-
-  <!-- 6. Focal Engine to Output -->
-  <path d="M 660 410 L 690 410" class="stroke-base" />
-
+  <!-- Bottom rule and telemetry note -->
+  <line x1="32" y1="228" x2="928" y2="228" class="stroke-base" />
+  <text x="32" y="244" class="sub">Guarantees: Zero token generation overhead · Full relational pushdown pruning · SHA-256 deterministic idempotency</text>
 </svg>
