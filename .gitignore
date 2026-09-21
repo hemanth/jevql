@@ -8,3 +8,5 @@ __pycache__/
 python/dist/
 python/*.egg-info/
 .venv/
+renders/
+videos/

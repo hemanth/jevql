@@ -1,8 +1,6 @@
 # jevql
 
-PostgreSQL-compatible query language powered by TypeSafe Jev System One models.
-
-[**Live Interactive Playground →**](https://hemanth.github.io/jevql/)
+Query unstructured data with calibrated semantic SQL and cognitive syntax.
 
 ```bash
 npm install jevql
@@ -16,31 +14,43 @@ import jevql from 'jevql';
 const rows = await jevql`
   from ${tickets}
   where status is open
-  ask "is there an immediate outage?" as is_outage > 0.7
-  tag as billing, security, tech
+  ask "immediate production outage?" as is_outage > 0.7
+  tag as billing, security, infrastructure
   top 10 by is_outage
 `;
 ```
 
-`jevql` executes natural language queries and PostgreSQL SQL with first-class semantic snap judgments and relational pushdown filtering. That's the whole API.
+`jevql` compiles natural language and SQL queries with single-pass semantic primitives and relational pushdown filtering. That's the whole API.
+
+## Cognitive syntax
+
+```haskell
+tickets: status = open
+? "immediate outage?" > 0.7
+team = security | infrastructure | billing
+severity = minor .. moderate .. critical
+top 5
+```
+
+Minimal syntax designed for human working memory with pattern guards and zero LLM prompt escaping.
 
 ## Group by semantic choice
 
 ```js
 const breakdown = await jevql(`
   SELECT
-    CHOICE(review, 'Category', ['bug', 'feature', 'billing']) AS category,
+    CHOICE(body, 'Category', ['bug', 'feature', 'billing']) AS category,
     COUNT(*) AS count,
-    AVG(SCORE(review, 'Frustration', ['calm', 'annoyed', 'furious'])) AS avg_frustration
-  FROM 'feedback.json'
+    AVG(SCORE(body, 'Frustration', ['calm', 'annoyed', 'furious'])) AS avg_frustration
+  FROM 'tickets.json'
   GROUP BY category
   ORDER BY count DESC
 `);
 ```
 
-Aggregates semi-structured text across categorical distributions in a single pass.
+Aggregates unstructured text across categorical distributions in a single pass.
 
-## Relational pushdown optimization
+## Relational pushdown
 
 ```js
 const plan = await db.explain(`
@@ -51,9 +61,9 @@ const plan = await db.explain(`
 `);
 ```
 
-Deterministic SQL filters (`status = 'open'`) run first, pruning non-matching rows before calling Jev. Surviving rows bundle all questions into a single System One request ($0 cost for filtered rows, 12x cheaper via speculative fan-out).
+Deterministic SQL filters execute first, pruning non-matching rows ($0 cost) before calling the AI engine.
 
-## Confidence gating & option probabilities
+## Confidence gating
 
 ```js
 const safeActions = await jevql(`
@@ -68,64 +78,29 @@ const safeActions = await jevql(`
 
 `CONFIDENCE()` measures distribution peakedness for escalation policies. `PROB()` extracts calibrated probability floats for individual outcomes.
 
-## Querying PostgreSQL databases
+## Python SDK
 
-```js
-const escalated = await jevql(`
-  SELECT id, customer,
-         SCORE(feedback, 'Churn risk', ['low', 'moderate', 'critical']) AS churn_risk
-  FROM postgres('postgres://user:pass@localhost:5432/db').support_tickets
-  WHERE status = 'open'
-  ORDER BY churn_risk DESC
-  LIMIT 25
-`);
+```python
+from jevql import JevQLDatabase
+
+db = JevQLDatabase(tickets)
+results = db.query("""
+  tickets: status = open
+  ? "urgent security breach?" > 0.8
+  team = security | tech
+  top 5
+""")
 ```
 
-Executes pushdown scans directly on PostgreSQL tables, then streams rows through local JevQL semantic scoring.
+Zero-dependency Python implementation mirroring identical AST planning and pushdown semantics.
 
-## CLI & Interactive REPL
+## CLI
 
 ```bash
-jevql script.jevql                 # Run natural language query directly
+jevql script.jevql                 # Run query directly
 jevql                              # Interactive REPL shell
-jevql -f tickets.json --analyze -q "from data where status is open top 5"
+jevql -f tickets.json -q "from data where status is open top 5"
 ```
-
-## Cognitive Minimalist & Pattern Syntax
-
-Designed for human working memory (Cognitive Load Theory) and zero LLM escaping bugs:
-
-```
-tickets: status = open
-? "immediate outage?" > 0.7
-dept = billing | security | tech
-urgency = low .. medium .. high
-top 10
-```
-
-Also supports Haskell pattern guards (`tickets { status: open } | "outage?" > 0.7 | dept -> [billing, tech]`) and list comprehensions.
-
-## Empirical benchmark
-
-Evaluated on canonical golden queries from PolyAI/banking77 ($N=100$ live) comparing unoptimized row-by-row LLM loops against JevQL:
-
-| Engine | Runtime Tier | Scanned | Evaluated | Top-1 Accuracy | Latency | Network Calls | Token Savings |
-|---|---|---|---|---|---|---|---|
-| **JevQL In-Tree** | Pure ES2022 (offline) | 100 | 42 | Heuristic | <0.05 ms | 0 | **100%** |
-| **JevQL Speculative** | TypeSafe Jev (Cloud) | 100 | 42 | **100.0%** | 19.7 ms/row | 42 | **79.0%** |
-| **JevQL Cache** | SHA-256 Memory Hit | 100 | 42 | Identical | **0.70 ms** | 0 | **100%** |
-| *Naive SQL+LLM* | Sequential Calls | 100 | 100 | ~100.0% | ~60,000 ms | 200 | 0% (Baseline) |
-
-Run `npm run bench` to reproduce live across canonical golden evaluation datasets.
-
-## Functions
-
-- `NOUL(col, 'prompt' [, 'true_desc' [, 'false_desc']])` — Evaluates condition, returns probability [0.0, 1.0].
-- `IS_TRUE(col, 'prompt' [, threshold])` — Boolean predicate shorthand (`NOUL(...) >= threshold`).
-- `CHOICE(col, 'prompt', ['opt1', 'opt2'])` — Categorical classification; returns winning option.
-- `SCORE(col, 'prompt', ['level0', 'level1', ...])` — Continuous score across ordered levels.
-- `CONFIDENCE(choice_or_score)` — Returns model confidence [0.0, 1.0].
-- `PROB(choice, 'option')` — Returns exact probability for chosen option.
 
 ## Demo
 
@@ -135,7 +110,12 @@ npm test
 npm run playground
 ```
 
-Runs the multi-mode demonstration, executes unit tests, and launches the local interactive workbench at `http://localhost:3456`.
+Runs the multi-mode demonstration, executes unit tests, and launches the interactive workbench at `http://localhost:3456`.
+
+## Related
+
+- [Interactive Playground](https://hemanth.github.io/jevql/) — live in-browser compiler and AST switchboard
+- [TypeSafe](https://typesafe.ai) — System One AI models for calibrated semantic judgments
 
 ## License
 
