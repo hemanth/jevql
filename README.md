@@ -3,13 +3,13 @@
 Query unstructured data with calibrated semantic SQL and cognitive syntax.
 
 ```bash
-npm install jevql
+npm install @hemanth/jevql
 ```
 
 ## Quick start
 
 ```js
-import jevql from 'jevql';
+import jevql from '@hemanth/jevql';
 
 const rows = await jevql`
   from ${tickets}

@@ -687,8 +687,8 @@
       </p>
 
       <div class="install-box">
-        <code>npm install jevql</code>
-        <button onclick="navigator.clipboard.writeText('npm install jevql'); this.innerText='Copied!'; setTimeout(()=>this.innerText='Copy', 2000)">Copy</button>
+        <code>npm install @hemanth/jevql</code>
+        <button onclick="navigator.clipboard.writeText('npm install @hemanth/jevql'); this.innerText='Copied!'; setTimeout(()=>this.innerText='Copy', 2000)">Copy</button>
       </div>
     </header>
 
@@ -986,7 +986,7 @@
               <span>javascript</span>
               <span class="lexer-pill">⚡ syntax: gpu-lexer</span>
             </div>
-            <pre class="code-block"><code>import jevql from 'jevql';
+            <pre class="code-block"><code>import jevql from '@hemanth/jevql';
 
 // 1. Default: TypeSafe Jev System One
 const urgent = await jevql`
@@ -1013,7 +1013,7 @@ const rows = await llmQuery`
               <span>javascript</span>
               <span class="lexer-pill">⚡ syntax: gpu-lexer</span>
             </div>
-            <pre class="code-block"><code>import { BaseSemanticEngine, registerEngine, jevql } from 'jevql';
+            <pre class="code-block"><code>import { BaseSemanticEngine, registerEngine, jevql } from '@hemanth/jevql';
 
 class MyLocalEngine extends BaseSemanticEngine {
   async evaluateSingleState(state, questions) {
