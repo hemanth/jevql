@@ -2276,6 +2276,7 @@ const SEMANTIC_CONCEPTS = {
   churn: ['churn', 'cancel', 'cancellation', 'leave', 'refund', 'reverse', 'suspend', 'suspended', 'quit', 'switching', 'churn_risk'],
   billing: ['billing', 'bill', 'charge', 'charges', 'invoice', 'payment', 'payout', 'payouts', 'credit', 'tax', 'receipt', 'subscription', 'refund', 'fee', 'w-9'],
   infrastructure: ['infrastructure', 'webhook', 'webhooks', 'server', 'endpoint', 'api', 'gateway', 'backend', 'service', '500', 'downtime'],
+  tech: ['tech', 'technical', 'technology', 'server', 'crash', '500', 'webhook', 'webhooks', 'api', 'endpoint', 'database', 'bug', 'code', 'backend', 'engineering', 'infrastructure', 'error', 'outage'],
   product: ['product', 'feature', 'dashboard', 'dark', 'ui', 'ux', 'button', 'request', 'requested', 'mode', 'suggestion'],
   bug_report: ['bug', 'error', 'errors', '500', 'broken', 'fail', 'stuck', 'crash', 'internal server'],
   question: ['could you', 'would it be', 'where can', 'how to', 'w-9', 'receipt', 'send us', 'question']

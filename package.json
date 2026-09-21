@@ -1,5 +1,5 @@
 {
-  "name": "@hemanth/jevql",
+  "name": "jev-ql",
   "version": "0.1.0",
   "description": "PostgreSQL-compatible query language powered by TypeSafe Jev System One models",
   "type": "module",
@@ -7,6 +7,7 @@
   "module": "index.js",
   "types": "index.d.ts",
   "bin": {
+    "jev-ql": "bin/jevql.js",
     "jevql": "bin/jevql.js"
   },
   "exports": {
@@ -14,9 +15,6 @@
       "types": "./index.d.ts",
       "import": "./index.js"
     }
-  },
-  "publishConfig": {
-    "access": "public"
   },
   "scripts": {
     "test": "node --test test/*.test.js",

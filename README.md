@@ -1,15 +1,15 @@
-# jevql
+# jev-ql
 
 Query unstructured data with calibrated semantic SQL and cognitive syntax.
 
 ```bash
-npm install @hemanth/jevql
+npm install jev-ql
 ```
 
 ## Quick start
 
 ```js
-import jevql from '@hemanth/jevql';
+import jevql from 'jev-ql';
 
 const rows = await jevql`
   from ${tickets}
