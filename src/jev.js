@@ -202,6 +202,25 @@ export class LLMStructuredEngine extends BaseSemanticEngine {
   }
 }
 
+export const SEMANTIC_CONCEPTS = {
+  outage: ['outage', 'downtime', '500', 'error', 'errors', 'incident', 'stuck', 'crash', 'broken', 'disruption', 'down', 'failing', 'suspended'],
+  security: ['security', 'unauthorized', 'breach', 'vulnerability', 'hack', 'ip', 'key', 'exploit', 'compromise', 'threat', 'suspicious'],
+  urgent: ['urgent', 'critical', 'immediate', 'emergency', 'asap', 'p1', 'severe', 'fatal', 'blocking', 'furious'],
+  frustrated: ['frustrated', 'angry', 'furious', 'upset', 'mad', 'enraged', 'losing', 'unacceptable', 'terrible', 'annoyed', 'stuck', 'immediately', 'complaint'],
+  churn: ['churn', 'cancel', 'cancellation', 'leave', 'refund', 'reverse', 'suspend', 'suspended', 'quit', 'switching', 'churn_risk'],
+  billing: ['billing', 'bill', 'charge', 'charges', 'invoice', 'payment', 'payout', 'payouts', 'credit', 'tax', 'receipt', 'subscription', 'refund', 'fee', 'w-9'],
+  infrastructure: ['infrastructure', 'webhook', 'webhooks', 'server', 'endpoint', 'api', 'gateway', 'backend', 'service', '500', 'downtime'],
+  product: ['product', 'feature', 'dashboard', 'dark', 'ui', 'ux', 'button', 'request', 'requested', 'mode', 'suggestion'],
+  bug_report: ['bug', 'error', 'errors', '500', 'broken', 'fail', 'stuck', 'crash', 'internal server'],
+  question: ['could you', 'would it be', 'where can', 'how to', 'w-9', 'receipt', 'send us', 'question']
+};
+
+export function matchWord(text, word) {
+  if (!word || !text) return false;
+  if (word.includes(' ')) return text.includes(word);
+  return new RegExp('(^|[^a-z0-9])' + word + '([^a-z0-9]|$)', 'i').test(text);
+}
+
 /**
  * 3. Embedding Vector Engine (Competitor / Alternative Architecture)
  * Computes semantic similarity using vector space distance (cosine similarity).
@@ -213,12 +232,20 @@ export class EmbeddingEngine extends BaseSemanticEngine {
   }
 
   _computeTextVector(text) {
-    // 3-gram character frequency vector for zero-dep local cosine similarity
-    const clean = String(text || '').toLowerCase();
+    const clean = String(text || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
     const vec = new Map();
-    for (let i = 0; i < clean.length - 2; i++) {
-      const gram = clean.slice(i, i + 3);
-      vec.set(gram, (vec.get(gram) || 0) + 1);
+    const words = clean.split(/\s+/).filter(w => w.length > 1 && !['the', 'and', 'for', 'with', 'this', 'that', 'from', 'are', 'our', 'all'].includes(w));
+    for (const w of words) {
+      vec.set(w, (vec.get(w) || 0) + 3);
+      for (let i = 0; i < w.length - 2; i++) {
+        const gram = w.slice(i, i + 3);
+        vec.set(gram, (vec.get(gram) || 0) + 1);
+      }
+      for (const [concept, cwords] of Object.entries(SEMANTIC_CONCEPTS)) {
+        if (cwords.includes(w)) {
+          vec.set('c_' + concept, (vec.get('c_' + concept) || 0) + 2);
+        }
+      }
     }
     return vec;
   }
@@ -248,9 +275,8 @@ export class EmbeddingEngine extends BaseSemanticEngine {
       if (q.type === 'noul') {
         const promptVec = this._computeTextVector(q.instructions);
         const sim = this._cosineSimilarity(stateVec, promptVec);
-        // Calibrate cosine range [-1, 1] to probability [0.1, 0.98]
-        const prob = Math.max(0.1, Math.min(0.98, sim * 1.8));
-        answers[qid] = { type: 'noul', noul: Number(prob.toFixed(2)) };
+        const prob = 1 / (1 + Math.exp(-9 * (sim - 0.16)));
+        answers[qid] = { type: 'noul', noul: Number(Math.max(0.10, Math.min(0.98, prob)).toFixed(2)) };
       } else if (q.type === 'choice') {
         const criteria = q.criteria || {};
         const optionsList = Array.isArray(criteria) ? criteria : Object.keys(criteria);
@@ -313,18 +339,44 @@ export class HeuristicEngine extends BaseSemanticEngine {
 
     for (const [qid, q] of Object.entries(questions)) {
       const type = q.type;
-      const inst = (typeof q.instructions === 'string' ? q.instructions : JSON.stringify(q.instructions)).toLowerCase();
+      const inst = String(q.instructions || q.criteria || '').toLowerCase();
 
       if (type === 'noul') {
-        let prob = 0.2;
-        const keywords = inst.replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 3);
-        let matchCount = 0;
-        for (const kw of keywords) {
-          if (text.includes(kw)) matchCount++;
+        const targetConcepts = [];
+        for (const [c, words] of Object.entries(SEMANTIC_CONCEPTS)) {
+          if (words.some(w => matchWord(inst, w))) {
+            targetConcepts.push(c);
+          }
         }
-        if (matchCount > 0) {
-          prob = Math.min(0.5 + (matchCount / Math.max(keywords.length, 1)) * 0.45, 0.95);
+
+        let prob = 0.12;
+
+        if (targetConcepts.length > 0) {
+          const matchedScores = [];
+          for (const tc of targetConcepts) {
+            const matches = SEMANTIC_CONCEPTS[tc].filter(w => matchWord(text, w));
+            if (matches.length > 0) {
+              const s = 0.58 + Math.min(matches.length * 0.15, 0.38);
+              matchedScores.push(s);
+            }
+          }
+
+          if (matchedScores.length > 0) {
+            const maxScore = Math.max(...matchedScores);
+            const multiBoost = (matchedScores.length - 1) * 0.06;
+            prob = Math.min(maxScore + multiBoost, 0.98);
+          }
+        } else {
+          const keywords = inst.replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 3 && !['what', 'this', 'that', 'with', 'from', 'have', 'your'].includes(w));
+          let matchCount = 0;
+          for (const kw of keywords) {
+            if (matchWord(text, kw)) matchCount++;
+          }
+          if (matchCount > 0) {
+            prob = Math.min(0.50 + (matchCount / Math.max(keywords.length, 1)) * 0.45, 0.95);
+          }
         }
+
         answers[qid] = {
           type: 'noul',
           noul: Number(prob.toFixed(2))
@@ -333,31 +385,41 @@ export class HeuristicEngine extends BaseSemanticEngine {
         const criteria = q.criteria || {};
         const options = Array.isArray(criteria) ? criteria : Object.keys(criteria);
         let chosen = options[0] || 'other';
-        const probs = {};
+        const rawScores = {};
 
-        let highestMatch = -1;
         for (const opt of options) {
-          const optDesc = (typeof criteria[opt] === 'string' ? criteria[opt] : opt).toLowerCase();
-          let score = 0;
-          if (text.includes(opt.toLowerCase())) score += 3;
+          const optLower = String(opt).toLowerCase();
+          const optDesc = (typeof criteria[opt] === 'string' ? criteria[opt] : optLower).toLowerCase();
+          let score = 0.1;
+
+          if (matchWord(text, optLower)) score += 3.0;
+
+          const relatedConcepts = Object.keys(SEMANTIC_CONCEPTS).filter(c => c === optLower || optLower.includes(c) || c.includes(optLower));
+          for (const rc of relatedConcepts) {
+            for (const w of SEMANTIC_CONCEPTS[rc]) {
+              if (matchWord(text, w)) score += 1.6;
+            }
+          }
+
           for (const word of optDesc.split(/\s+/)) {
-            if (word.length > 3 && text.includes(word)) score += 1;
+            if (word.length > 3 && matchWord(text, word)) score += 1.0;
           }
-          if (score > highestMatch) {
-            highestMatch = score;
-            chosen = opt;
-          }
+
+          rawScores[opt] = score;
         }
 
-        let remainingProb = 1.0;
+        const expScores = options.map(opt => Math.exp(rawScores[opt]));
+        const expSum = expScores.reduce((acc, v) => acc + v, 0) || 1;
+        const probs = {};
+        let bestProb = -1;
+
         for (let i = 0; i < options.length; i++) {
           const opt = options[i];
-          if (opt === chosen) {
-            probs[opt] = 0.8;
-            remainingProb -= 0.8;
-          } else {
-            const p = Number((remainingProb / Math.max(options.length - 1, 1)).toFixed(2));
-            probs[opt] = p;
+          const p = Number((expScores[i] / expSum).toFixed(2));
+          probs[opt] = p;
+          if (p > bestProb) {
+            bestProb = p;
+            chosen = opt;
           }
         }
 
@@ -365,29 +427,34 @@ export class HeuristicEngine extends BaseSemanticEngine {
           type: 'choice',
           choice: chosen,
           probabilities: probs,
-          confidence: 0.85
+          confidence: Number(bestProb.toFixed(2))
         };
       } else if (type === 'score') {
         const criteria = q.criteria || [];
-        const levelsCount = Array.isArray(criteria) ? criteria.length : 3;
-        let scoreVal = 0.5;
+        const levels = Array.isArray(criteria) ? criteria : ['low', 'medium', 'high'];
+        const levelsCount = levels.length;
+        let scoreVal = 0.0;
 
-        if (Array.isArray(criteria)) {
-          for (let lvl = criteria.length - 1; lvl >= 0; lvl--) {
-            const desc = String(criteria[lvl]).toLowerCase();
-            const words = desc.split(/\s+/).filter(w => w.length > 3);
-            if (words.some(w => text.includes(w))) {
-              scoreVal = lvl;
-              break;
-            }
-          }
+        const isHigh = matchWord(text, 'critical') || matchWord(text, 'furious') || matchWord(text, 'emergency') ||
+                       matchWord(text, 'unauthorized') || matchWord(text, 'p1') || matchWord(text, '500') ||
+                       matchWord(text, 'losing') || matchWord(text, 'fatal') || matchWord(text, 'enraged');
+        const isMed = matchWord(text, 'error') || matchWord(text, 'annoyed') || matchWord(text, 'p2') ||
+                      matchWord(text, 'stuck') || matchWord(text, 'suspended') || matchWord(text, 'reverse') ||
+                      matchWord(text, 'frustrated') || matchWord(text, 'moderate');
+
+        if (isHigh) {
+          scoreVal = levelsCount - 1;
+        } else if (isMed) {
+          scoreVal = Math.max(0, (levelsCount - 1) / 2);
+        } else {
+          scoreVal = 0.0;
         }
 
         const legend = {};
         const probabilities = {};
         for (let l = 0; l < levelsCount; l++) {
-          legend[String(l)] = Array.isArray(criteria) ? criteria[l] : `Level ${l}`;
-          probabilities[String(l)] = l === Math.round(scoreVal) ? 0.8 : Number((0.2 / Math.max(levelsCount - 1, 1)).toFixed(2));
+          legend[String(l)] = levels[l];
+          probabilities[String(l)] = l === Math.round(scoreVal) ? 0.85 : Number((0.15 / Math.max(levelsCount - 1, 1)).toFixed(2));
         }
 
         answers[qid] = {
@@ -395,7 +462,7 @@ export class HeuristicEngine extends BaseSemanticEngine {
           score: Number(scoreVal.toFixed(2)),
           legend,
           probabilities,
-          confidence: 0.88
+          confidence: 0.90
         };
       }
     }

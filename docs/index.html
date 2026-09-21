@@ -1039,6 +1039,7 @@ ORDER BY security_prob DESC`
 
         // Run REAL JevQL in-browser engine instance
         const db = new JevQLDatabase(sampleData, { engine: currentEngine });
+        db.register('tickets', sampleData);
         currentAnalysis = await db.analyze(currentSQL);
         currentResults = currentAnalysis.rows;
       } catch (err) {
