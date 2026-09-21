@@ -365,6 +365,89 @@
       border-color: var(--border-focus);
     }
 
+    .editor-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.5rem;
+      font-size: 0.76rem;
+      font-family: 'Geist Mono', monospace;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    kbd {
+      background: #eee;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      padding: 0.1rem 0.35rem;
+      font-size: 0.72rem;
+      font-family: inherit;
+      color: var(--ink);
+      box-shadow: 0 1px 0 rgba(0,0,0,0.2);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    .empty-state-badge {
+      display: inline-block;
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: #f4f2eb;
+      border: 1px solid var(--border);
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      margin-bottom: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+
+    .empty-state-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 0.4rem;
+    }
+
+    .empty-state-text {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 1.25rem;
+    }
+
+    .execution-footer {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      margin-top: 1rem;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      font-family: 'Geist Mono', monospace;
+      color: var(--text-muted);
+    }
+
+    .live-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: #16a34a;
+      font-weight: 700;
+      background: #dcfce7;
+      padding: 0.15rem 0.5rem;
+      border-radius: 3px;
+      border: 1px solid #bbf7d0;
+    }
+
     /* Results Tabs */
     .tabs-bar {
       display: flex;
@@ -666,6 +749,10 @@
             <span id="engineBadge" style="color: var(--sage-text); font-weight: 700;">Engine: TypeSafe Jev (System One)</span>
           </div>
           <textarea id="sqlInput" class="sql-input" spellcheck="false"></textarea>
+          <div class="editor-footer">
+            <span>⌨ Press <kbd>⌘</kbd>+<kbd>Enter</kbd> or <kbd>Ctrl</kbd>+<kbd>Enter</kbd> to run</span>
+            <span>Edit query text freely — executes in real-time natively in your browser</span>
+          </div>
         </div>
 
         <div class="tabs-bar">
@@ -1002,6 +1089,8 @@ ORDER BY security_prob DESC`
     let currentAnalysis = null;
     let currentAST = null;
     let currentSQL = '';
+    let executionCount = 0;
+    let lastExecutionTime = '';
 
     window.switchEngine = function(eng) {
       currentEngine = eng;
@@ -1012,14 +1101,20 @@ ORDER BY security_prob DESC`
         heuristic: 'Engine: In-Tree Zero-Dep Fallback (Offline Heuristic)'
       };
       document.getElementById('engineBadge').innerText = names[eng] || eng;
-      window.executeCurrentQuery();
+      if (currentResults !== null) {
+        window.executeCurrentQuery();
+      }
     };
 
     window.loadPreset = function(key) {
       document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
       event.target.classList.add('active');
       document.getElementById('sqlInput').value = presets[key];
-      window.executeCurrentQuery();
+      currentResults = null;
+      currentAnalysis = null;
+      currentAST = null;
+      currentSQL = '';
+      renderTab();
     };
 
     window.switchTab = function(tab) {
@@ -1030,6 +1125,28 @@ ORDER BY security_prob DESC`
     };
 
     window.executeCurrentQuery = async function() {
+      const runBtn = document.querySelector('.run-btn');
+      const prevBtnHtml = runBtn ? runBtn.innerHTML : '<span>▶ Execute</span>';
+      if (runBtn) {
+        runBtn.innerHTML = '<span>⏳ Compiling &amp; Running...</span>';
+        runBtn.style.opacity = '0.7';
+      }
+
+      const el = document.getElementById('tabContent');
+      if (activeTab === 'results') {
+        el.innerHTML = `
+          <div class="empty-state" style="padding: 2.5rem 1rem;">
+            <div class="empty-state-badge" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">PARSING &amp; COMPILING AST</div>
+            <div class="empty-state-title">Executing semantic query in browser...</div>
+            <p class="empty-state-text" style="font-family:'Geist Mono', monospace; font-size:0.8rem;">
+              Parsing AST → Pushdown filter evaluation → Single-pass System One evaluation
+            </p>
+          </div>`;
+      }
+
+      // Allow UI repaint so execution state is clearly visible
+      await new Promise(r => setTimeout(r, 60));
+
       const q = document.getElementById('sqlInput').value.trim();
       const t0 = performance.now();
 
@@ -1042,23 +1159,55 @@ ORDER BY security_prob DESC`
         db.register('tickets', sampleData);
         currentAnalysis = await db.analyze(currentSQL);
         currentResults = currentAnalysis.rows;
+        executionCount++;
+        lastExecutionTime = new Date().toLocaleTimeString();
       } catch (err) {
         currentResults = [];
         currentAnalysis = { error: err.message };
       }
 
       const elapsed = (performance.now() - t0).toFixed(2);
+      if (runBtn) {
+        runBtn.innerHTML = prevBtnHtml;
+        runBtn.style.opacity = '1';
+      }
       renderTab(elapsed);
     };
 
     function renderTab(elapsed = '12.4') {
       const el = document.getElementById('tabContent');
+      const q = document.getElementById('sqlInput').value.trim();
+
+      // Ensure AST is parsed for inspection tabs even before execution
+      if (!currentAST && q) {
+        try {
+          const sql = isPipelineQuery(q) ? pipelineToSQL(q) : q;
+          currentSQL = sql;
+          currentAST = parse(sql);
+        } catch (e) {}
+      }
 
       if (activeTab === 'results') {
-        if (!currentResults || currentResults.length === 0) {
-          el.innerHTML = `<p style="color: var(--coral-text); font-family:'Geist Mono', monospace;">${currentAnalysis?.error ? `Query Error: ${currentAnalysis.error}` : '(0 rows returned)'}</p>`;
+        if (currentResults === null) {
+          el.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-badge">READY TO COMPILE &amp; RUN</div>
+              <div class="empty-state-title">Live In-Browser Compiler &amp; Semantic Runtime</div>
+              <p class="empty-state-text">
+                Query is loaded in the editor. Click <strong>▶ Execute</strong> or press <kbd>⌘</kbd>+<kbd>Enter</kbd> to compile the AST, resolve relational pushdowns, and evaluate Jev System One semantic primitives against live data in your browser.
+              </p>
+              <button class="run-btn" onclick="executeCurrentQuery()" style="margin: 0 auto; padding: 0.55rem 1.4rem; font-size: 0.88rem;">
+                <span>▶ Execute Query</span>
+              </button>
+            </div>`;
           return;
         }
+
+        if (currentResults.length === 0) {
+          el.innerHTML = `<p style="color: var(--coral-text); font-family:'Geist Mono', monospace; padding: 2rem; text-align: center;">${currentAnalysis?.error ? `Query Error: ${currentAnalysis.error}` : '(0 rows returned — predicates pruned all candidates)'}</p>`;
+          return;
+        }
+
         const cols = Object.keys(currentResults[0]);
         let html = '<table class="result-table"><thead><tr>';
         for (const col of cols) html += `<th>${col}</th>`;
@@ -1081,10 +1230,19 @@ ORDER BY security_prob DESC`
         const pruned = currentAnalysis?.telemetry?.pushdownPruned || 0;
         const evaluated = currentAnalysis?.telemetry?.evaluatedRows || currentResults.length;
 
-        html += `</tbody></table><p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.75rem; font-family:'Geist Mono', monospace;">` +
-                `✓ Executed in ${elapsed}ms | Evaluated: ${evaluated} rows | Pruned via Pushdown: ${pruned} rows ($0 cost) | Engine: ${currentEngine.toUpperCase()}</p>`;
+        html += `</tbody></table>` +
+                `<div class="execution-footer">` +
+                `  <span class="live-dot">● LIVE RUN #${executionCount}</span>` +
+                `  <span>✓ Compiled &amp; evaluated in <strong>${elapsed}ms</strong> at <strong>${lastExecutionTime}</strong></span>` +
+                `  <span>Scanned: <strong>${scanned}</strong> | Pruned: <strong>${pruned}</strong> ($0) | Evaluated: <strong>${evaluated}</strong></span>` +
+                `  <span>Engine: <strong>${currentEngine.toUpperCase()}</strong></span>` +
+                `</div>`;
         el.innerHTML = html;
       } else if (activeTab === 'mapping') {
+        if (!currentAST) {
+          el.innerHTML = `<p style="padding: 2rem; color: var(--text-muted); font-family:'Geist Mono', monospace;">No AST available. Click Execute to compile query.</p>`;
+          return;
+        }
         const plan = createQueryPlan(currentAST);
         let html = '<table class="mapping-table"><thead><tr><th>AST Query Expression</th><th>Jev API Primitive</th><th>Payload (TypeSafe Contract)</th><th>Output Type</th></tr></thead><tbody>';
 
@@ -1092,21 +1250,21 @@ ORDER BY security_prob DESC`
           html += `<tr><td><code>Pushdown Predicate</code></td><td><span class="tag-badge tag-prod">Relational Pushdown</span></td><td><code>Evaluated BEFORE calling AI engine</code></td><td><strong>Pruned ($0 cost)</strong></td></tr>`;
         }
 
-        for (const q of plan.questions) {
-          const typeBadge = q.question.type === 'noul' ? 'tag-blue' : q.question.type === 'choice' ? 'tag-sec' : 'tag-prod';
-          html += `<tr><td><code>${q.fnName}(${q.stateExpr?.name || 'auto'}, '${q.question.instructions}')</code></td>` +
-                  `<td><span class="tag-badge ${typeBadge}">${q.question.type}</span></td>` +
-                  `<td><code>${JSON.stringify(q.question)}</code></td>` +
-                  `<td><strong>${q.question.type === 'noul' ? 'Calibrated Float [0, 1]' : q.question.type === 'choice' ? 'Discrete Winner + PROB()' : 'Continuous Float [0, N]'}</strong></td></tr>`;
+        for (const qItem of plan.questions) {
+          const typeBadge = qItem.question.type === 'noul' ? 'tag-blue' : qItem.question.type === 'choice' ? 'tag-sec' : 'tag-prod';
+          html += `<tr><td><code>${qItem.fnName}(${qItem.stateExpr?.name || 'auto'}, '${qItem.question.instructions}')</code></td>` +
+                  `<td><span class="tag-badge ${typeBadge}">${qItem.question.type}</span></td>` +
+                  `<td><code>${JSON.stringify(qItem.question)}</code></td>` +
+                  `<td><strong>${qItem.question.type === 'noul' ? 'Calibrated Float [0, 1]' : qItem.question.type === 'choice' ? 'Discrete Winner + PROB()' : 'Continuous Float [0, N]'}</strong></td></tr>`;
         }
 
         html += '</tbody></table>';
         el.innerHTML = html;
       } else if (activeTab === 'plan') {
-        el.innerHTML = `<pre class="code-block"><code>${JSON.stringify(currentAnalysis?.plan || currentAnalysis?.telemetry || {}, null, 2)}</code></pre>`;
+        el.innerHTML = `<pre class="code-block"><code>${JSON.stringify(currentAnalysis?.plan || currentAnalysis?.telemetry || { status: 'Not yet executed — hit ▶ Execute above to compute telemetry' }, null, 2)}</code></pre>`;
       } else if (activeTab === 'ast') {
         el.innerHTML = `<p style="font-size:0.78rem; font-family:'Geist Mono', monospace; margin-bottom:0.5rem; color:var(--text-muted);">Transpiled SQL:</p>` +
-                       `<pre class="code-block" style="margin-bottom:1rem;"><code>${currentSQL}</code></pre>` +
+                       `<pre class="code-block" style="margin-bottom:1rem;"><code>${currentSQL || 'Click ▶ Execute to transpile'}</code></pre>` +
                        `<p style="font-size:0.78rem; font-family:'Geist Mono', monospace; margin-bottom:0.5rem; color:var(--text-muted);">Parsed AST:</p>` +
                        `<pre class="code-block"><code>${JSON.stringify(currentAST, null, 2)}</code></pre>`;
       } else if (activeTab === 'data') {
@@ -1173,9 +1331,17 @@ ORDER BY security_prob DESC`
       }
     }
 
-    // Initialize workbench & gpu-lexer
-    document.getElementById('sqlInput').value = presets.cognitive_incident;
-    window.executeCurrentQuery();
+    // Initialize workbench & keyboard shortcuts (without auto-executing)
+    const sqlInputEl = document.getElementById('sqlInput');
+    sqlInputEl.value = presets.cognitive_incident;
+    sqlInputEl.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        window.executeCurrentQuery();
+      }
+    });
+
+    renderTab();
     initSyntaxHighlighters();
   </script>
 </body>
