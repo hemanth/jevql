@@ -1008,94 +1008,126 @@
 
     <!-- SECTION: ARCHITECTURE & COMPETITORS -->
     <section id="competitors">
-      <h2 class="section-title">Architecture &amp; Competitor Benchmark Matrix</h2>
-      <p class="section-sub">Empirically measured across N=100 golden queries from PolyAI/banking77. Reproducible via <code>npm run bench</code>.</p>
+      <h2 class="section-title">Architecture Benchmark Matrix</h2>
+      <p class="section-sub">Measured compiler efficiency on PolyAI/banking77 (N=100) vs. published hardware specs and analytical baselines. Reproducible via <code>npm run bench</code>.</p>
 
       <div class="mapping-container">
         <div class="mapping-header">
-          <h3>Empirical Evaluation: System One vs. Generative LLMs &amp; Vector Embeddings</h3>
-          <p>Benchmarked on Apple Silicon (Node.js v22) across 100 golden test cases with ground-truth labels and relational constraints.</p>
+          <h3>Architectural Benchmark: Live Measured vs. Literature &amp; Analytical Baselines</h3>
+          <p>Local compiler, relational pushdown, and cache measured in Node.js on Apple Silicon across 100 golden test cases with ground-truth labels.</p>
         </div>
         <table class="competitor-table">
           <thead>
             <tr>
-              <th style="width: 22%;">Architecture Tier</th>
-              <th style="width: 14%;">Measured Latency</th>
+              <th style="width: 24%;">Architecture Tier</th>
+              <th style="width: 14%;">Evaluation Type</th>
+              <th style="width: 14%;">Latency / Row</th>
               <th style="width: 14%;">Generated Tokens</th>
-              <th style="width: 18%;">Top-1 Intent Accuracy</th>
-              <th style="width: 16%;">Speculative Fan-out</th>
-              <th style="width: 16%;">Pushdown Pruning</th>
+              <th style="width: 16%;">Request Count</th>
+              <th style="width: 18%;">Grounding &amp; Methodology</th>
             </tr>
           </thead>
           <tbody>
             <tr style="background: #f6fcf8;">
               <td>
-                <strong style="color: var(--sage-text);">JevQL + JevK5 (Open-Weight)</strong><br>
-                <small style="color: var(--text-muted);"><a href="https://github.com/allebee/jevk5" target="_blank" style="color:inherit;text-decoration:underline;">allebee/jevk5</a> · Apache-2.0</small>
+                <strong style="color: var(--sage-text);">JevQL In-Tree Fast-Path</strong><br>
+                <small style="color: var(--text-muted);">Pure ES2022 CPU engine</small>
               </td>
-              <td><span class="tag-badge tag-prod">4.87 ms / row</span><br><small style="color: var(--text-muted);">(13.5 ms H100)</small></td>
+              <td><span class="tag-badge tag-prod">Measured Live</span></td>
+              <td>0.24 ms / row</td>
               <td><span class="tag-badge tag-prod">0 tokens</span></td>
-              <td><strong style="color: var(--sage-text);">83.3%</strong> (banking77)<br><small style="color: var(--text-muted);">95.8% JevBench (#1 open)</small></td>
-              <td><span class="tag-badge tag-prod">Local GPU (0 network)</span></td>
-              <td><span class="tag-badge tag-prod">58 of 100 ($0 cost)</span></td>
-            </tr>
-            <tr>
-              <td>
-                <strong style="color: var(--azure-text);">JevQL Speculative (System One)</strong><br>
-                <small style="color: var(--text-muted);">TypeSafe Jev Cloud API</small>
-              </td>
-              <td><span class="tag-badge tag-blue">20.1 ms / row</span></td>
-              <td><span class="tag-badge tag-prod">0 tokens</span></td>
-              <td><strong>83.3%</strong> (Calibrated)</td>
-              <td><span class="tag-badge tag-prod">42 calls (4.8x saved)</span></td>
-              <td><span class="tag-badge tag-prod">58 of 100 ($0 cost)</span></td>
+              <td>0 (in-memory)</td>
+              <td>100% in-tree execution; zero external network calls</td>
             </tr>
             <tr>
               <td>
                 <strong>JevQL Cache Hit</strong><br>
                 <small style="color: var(--text-muted);">SHA-256 In-Tree LRU</small>
               </td>
-              <td><span class="tag-badge tag-prod">0.016 ms / row</span><br><small style="color: var(--text-muted);">(0.65 ms total)</small></td>
+              <td><span class="tag-badge tag-prod">Measured Live</span></td>
+              <td>0.006 ms / row</td>
               <td><span class="tag-badge tag-prod">0 tokens</span></td>
-              <td><strong>100.0%</strong> (Deterministic)</td>
-              <td>0 network requests</td>
-              <td>100% token savings</td>
+              <td>0 (memory hit)</td>
+              <td>Sub-millisecond repeat execution (0.27ms total)</td>
             </tr>
             <tr>
               <td>
-                <strong>JevQL In-Tree Fast-Path</strong><br>
-                <small style="color: var(--text-muted);">Pure ES2022 Offline Fallback</small>
+                <strong style="color: var(--sage-text);">Relational Pushdown</strong><br>
+                <small style="color: var(--text-muted);">AST Deterministic Pruning</small>
               </td>
-              <td><span class="tag-badge tag-prod">0.21 ms / row</span></td>
+              <td><span class="tag-badge tag-prod">Measured Live</span></td>
+              <td>0.00 ms (pruned)</td>
               <td><span class="tag-badge tag-prod">0 tokens</span></td>
-              <td>Heuristic baseline</td>
-              <td>In-memory single pass</td>
-              <td><span class="tag-badge tag-prod">100% In-Tree</span></td>
+              <td>0 calls ($0)</td>
+              <td><strong>58 of 100 rows</strong> dropped before AI engine is invoked</td>
+            </tr>
+            <tr>
+              <td>
+                <strong style="color: var(--azure-text);">Speculative Fan-out</strong><br>
+                <small style="color: var(--text-muted);">AST Question Bundling</small>
+              </td>
+              <td><span class="tag-badge tag-prod">Measured Live</span></td>
+              <td>Bundled 2 questions</td>
+              <td><span class="tag-badge tag-prod">0 tokens</span></td>
+              <td>42 calls (4.8x saved)</td>
+              <td>Multi-dimensional bundling cuts requests from 200 to 42</td>
+            </tr>
+            <tr style="background: #fafafa;">
+              <td>
+                <strong style="color: var(--ink);">JevQL + JevK5 (4B LoRA)</strong><br>
+                <small style="color: var(--text-muted);"><a href="https://github.com/allebee/jevk5" target="_blank" style="color:inherit;text-decoration:underline;">allebee/jevk5</a> · Apache-2.0</small>
+              </td>
+              <td><span class="tag-badge tag-blue">Published Spec</span></td>
+              <td>~13.5 ms / row<br><small style="color:var(--text-muted);">(H100 GPU)</small></td>
+              <td><span class="tag-badge tag-prod">0 tokens</span></td>
+              <td>0 (Local GPU)</td>
+              <td>Single forward-pass SemIf option logits (JevBench v1.4)</td>
+            </tr>
+            <tr style="background: #fafafa;">
+              <td>
+                <strong style="color: var(--azure-text);">TypeSafe Jev Cloud</strong><br>
+                <small style="color: var(--text-muted);">TypeSafe System One API</small>
+              </td>
+              <td><span class="tag-badge tag-blue">Published Spec</span></td>
+              <td>Sub-30ms P95</td>
+              <td><span class="tag-badge tag-prod">0 tokens</span></td>
+              <td>42 calls</td>
+              <td>Calibrated System One decision probabilities</td>
             </tr>
             <tr>
               <td>
                 <strong>Naive SQL + LLM Loop</strong><br>
-                <small style="color: var(--text-muted);">GPT-4o / Claude 3.5 Sequential</small>
+                <small style="color: var(--text-muted);">Sequential GPT-4o / Claude 3.5</small>
               </td>
-              <td><span class="tag-badge tag-sec">~600 ms / call</span><br><small style="color: var(--text-muted);">(~60,000 ms total)</small></td>
-              <td><span class="tag-badge tag-sec">~180 tokens / row</span><br><small style="color: var(--text-muted);">(18,000 tokens total)</small></td>
-              <td>~83.3% (Uncalibrated)</td>
-              <td>200 separate calls (No fan-out)</td>
-              <td>0% (Evaluates all rows)</td>
+              <td><span class="tag-badge tag-sec">Analytical Model</span></td>
+              <td>~600 ms / call<br><small style="color:var(--text-muted);">(~60,000 ms total)</small></td>
+              <td><span class="tag-badge tag-sec">~180 tokens / row</span><br><small style="color:var(--text-muted);">(18,000 tokens total)</small></td>
+              <td>200 separate calls</td>
+              <td>Autoregressive decoding loop for structured JSON responses</td>
             </tr>
             <tr>
               <td>
                 <strong>Vector Embeddings</strong><br>
-                <small style="color: var(--text-muted);">Bi-Encoder Cosine (text-embedding-3)</small>
+                <small style="color: var(--text-muted);">Bi-Encoder (text-embedding-3)</small>
               </td>
-              <td><span class="tag-badge tag-infra">25 - 60 ms</span></td>
+              <td><span class="tag-badge tag-infra">Analytical Model</span></td>
+              <td>25 - 60 ms / call</td>
               <td><span class="tag-badge tag-prod">0 tokens</span></td>
-              <td>82.4% (Uncalibrated cosine)</td>
-              <td>N/A (Similarity only)</td>
-              <td>Vector index only</td>
+              <td>100 calls</td>
+              <td>Cosine similarity; uncalibrated, no negative condition support</td>
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <div style="margin-top: 1.5rem; background: #faf9f5; border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem 1.5rem;">
+        <h4 style="font-size: 0.88rem; font-weight: 700; margin-bottom: 0.6rem; color: var(--ink);">🔬 Methodology &amp; Benchmarking Transparency Notes</h4>
+        <ul style="font-size: 0.8rem; line-height: 1.6; color: var(--text-muted); padding-left: 1.2rem; margin: 0;">
+          <li><strong>Measured Live:</strong> Relational pushdown pruning (58/100 rows dropped), speculative fan-out consolidation (42 vs 200 requests), and in-tree LRU caching are measured directly on your machine via <code>npm run bench</code>.</li>
+          <li><strong>Why Decision Models Use 0 Tokens:</strong> Models like Jev and JevK5 read classification distributions directly from candidate option logits in a single forward pass without autoregressive generation loops.</li>
+          <li><strong>Why Generative LLMs are Slower:</strong> Autoregressive LLMs generate text token-by-token (100–180 tokens per row for JSON schema), requiring hundreds of sequential GPU forward passes and network roundtrips.</li>
+          <li><strong>Hardware Grounding:</strong> JevK5's 13.5ms latency reflects published measurements on an NVIDIA H100 GPU (JevBench v1.4, ranked #1 open model). In-tree local runs use lightweight heuristics unless connected to a live model instance.</li>
+        </ul>
       </div>
     </section>
 
