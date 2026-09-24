@@ -2567,7 +2567,7 @@ class WebMLKitEngine extends BaseSemanticEngine {
             try {
               mod = await import('webml-kit');
             } catch {
-              // Ignore
+              // Ignore import error in non-module environment
             }
           }
 
@@ -3073,6 +3073,7 @@ class Executor {
       rows = joinedRows;
     }
 
+    // 4. Relational Pushdown Filter (Drop cheap non-matching rows before Jev AI!)
     if (plan.pushdownFilter) {
       rows = rows.filter(row => {
         const res = this.evalExpr(plan.pushdownFilter, row);
@@ -3288,12 +3289,32 @@ class Executor {
 
 
 
+import {
+  JevClient,
+  BaseSemanticEngine,
+  TypeSafeJevEngine,
+  LLMStructuredEngine,
+  EmbeddingEngine,
+  HeuristicEngine,
+  WebMLKitEngine,
+  registerEngine,
+  createEngine
+} from './jev.js';
 
 
 
 
 
-
+import {
+  startRepl,
+  createCompleter,
+  isQueryComplete,
+  inspectSchema,
+  SQL_KEYWORDS,
+  JEV_KEYWORDS,
+  COGNITIVE_KEYWORDS,
+  DOT_COMMANDS
+} from './repl.js';
 
 class JevQLDatabase {
   constructor(initialData = null, options = {}) {

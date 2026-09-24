@@ -2,8 +2,8 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import readline from 'node:readline';
 import jevql, { formatTable, formatCSV } from '../src/index.js';
+import { startRepl } from '../src/repl.js';
 
 const args = process.argv.slice(2);
 
@@ -85,7 +85,11 @@ async function main() {
     } else if (arg === '--concurrency') {
       concurrency = parseInt(args[++i], 10);
     } else if (!query && !arg.startsWith('-')) {
-      query = arg;
+      if (arg === 'repl') {
+        query = null;
+      } else {
+        query = arg;
+      }
     }
   }
 
@@ -124,7 +128,7 @@ async function main() {
       }
       query = content;
     }
-  } else if (!process.stdin.isTTY) {
+  } else if (!process.stdin.isTTY && !args.includes('repl')) {
     // Read query or data from stdin pipe
     try {
       const piped = fs.readFileSync(0, 'utf8').trim();
@@ -176,78 +180,7 @@ async function main() {
   }
 
   // Interactive REPL Mode (default when no query is passed)
-  console.log(`\x1b[1m\x1b[36mJevQL Interactive Shell\x1b[0m${filePath ? ` (loaded: ${filePath})` : ''}`);
-  console.log(`Type queries directly (e.g. from "data.json" | ...), '.load <file>', or '.exit'\n`);
-
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    prompt: '\x1b[32mjevql>\x1b[0m '
-  });
-
-  rl.prompt();
-
-  rl.on('line', async (line) => {
-    const trimmed = line.trim();
-    if (!trimmed) {
-      rl.prompt();
-      return;
-    }
-
-    if (trimmed === '.exit' || trimmed === 'exit' || trimmed === 'quit') {
-      rl.close();
-      return;
-    }
-
-    if (trimmed.startsWith('.load ')) {
-      const targetFile = trimmed.replace(/^\.load\s+/, '').trim().replace(/^['"]|['"]$/g, '');
-      const fullPath = path.resolve(process.cwd(), targetFile);
-      if (!fs.existsSync(fullPath)) {
-        console.error(`\x1b[31mFile not found: ${fullPath}\x1b[0m\n`);
-      } else {
-        const ext = path.extname(fullPath).toLowerCase();
-        let data;
-        if (ext === '.csv') {
-          const { parseCSV } = await import('../src/utils.js');
-          data = parseCSV(fs.readFileSync(fullPath, 'utf8'));
-        } else {
-          data = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
-        }
-        db = jevql(data, options);
-        console.log(`\x1b[32mLoaded ${Array.isArray(data) ? data.length : 1} records from ${targetFile}\x1b[0m\n`);
-      }
-      rl.prompt();
-      return;
-    }
-
-    if (trimmed === '.tables') {
-      console.log('Available tables: data (or query any "path/file.json" directly)');
-      rl.prompt();
-      return;
-    }
-
-    if (trimmed === '.help') {
-      printHelp();
-      rl.prompt();
-      return;
-    }
-
-    try {
-      const start = Date.now();
-      const rows = await db.query(trimmed);
-      const elapsed = Date.now() - start;
-      outputResult(rows, format);
-      console.log(`\x1b[90mExecuted in ${elapsed}ms\x1b[0m\n`);
-    } catch (err) {
-      console.error(`\x1b[31mError:\x1b[0m ${err.message}\n`);
-    }
-    rl.prompt();
-  });
-
-  rl.on('close', () => {
-    console.log('\nBye!');
-    process.exit(0);
-  });
+  await startRepl({ db, format });
 }
 
 function outputResult(rows, format) {

@@ -15,6 +15,16 @@ import { Executor } from './executor.js';
 import { formatTable, formatCSV, parseCSV } from './utils.js';
 import { pipelineToSQL, isPipelineQuery } from './pipeline.js';
 import { createQueryPlan, splitWhereClause, defaultEvalLiteral } from './planner.js';
+import {
+  startRepl,
+  createCompleter,
+  isQueryComplete,
+  inspectSchema,
+  SQL_KEYWORDS,
+  JEV_KEYWORDS,
+  COGNITIVE_KEYWORDS,
+  DOT_COMMANDS
+} from './repl.js';
 
 class JevQLDatabase {
   constructor(initialData = null, options = {}) {
@@ -212,5 +222,13 @@ export {
   createEngine,
   formatTable,
   formatCSV,
-  parseCSV
+  parseCSV,
+  startRepl,
+  createCompleter,
+  isQueryComplete,
+  inspectSchema,
+  SQL_KEYWORDS,
+  JEV_KEYWORDS,
+  COGNITIVE_KEYWORDS,
+  DOT_COMMANDS
 };

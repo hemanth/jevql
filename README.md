@@ -98,7 +98,7 @@ Zero-dependency Python implementation mirroring identical AST planning and pushd
 
 ```bash
 jevql script.jevql                 # Run query directly
-jevql                              # Interactive REPL shell
+jevql                              # Interactive REPL shell (Tab auto-completion)
 jevql -f tickets.json -q "from data where status is open top 5"
 ```
 

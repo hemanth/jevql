@@ -81,3 +81,23 @@ export class WebMLKitEngine extends BaseSemanticEngine {
 export function registerEngine(name: string, engineClass: new (options?: any) => BaseSemanticEngine): void;
 export function createEngine(nameOrInstance: string | BaseSemanticEngine, options?: any): BaseSemanticEngine;
 
+export interface ReplOptions {
+  db?: JevQLDatabase;
+  format?: 'table' | 'json' | 'csv';
+  historyFile?: string;
+  input?: NodeJS.ReadableStream;
+  output?: NodeJS.WritableStream;
+}
+
+export function startRepl(options?: ReplOptions): Promise<any>;
+export function createCompleter(getDb: (() => JevQLDatabase) | JevQLDatabase | null, options?: { cwd?: string }): (line: string) => [string[], string];
+export function completePath(rawPath: string, baseDir?: string): [string[], string];
+export function isQueryComplete(buffer: string[], currentLine: string): boolean;
+export function inspectSchema(tableName: string, rows: Record<string, any>[]): string;
+
+export const SQL_KEYWORDS: string[];
+export const JEV_KEYWORDS: string[];
+export const COGNITIVE_KEYWORDS: string[];
+export const DOT_COMMANDS: string[];
+
+
