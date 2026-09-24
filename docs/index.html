@@ -346,33 +346,88 @@
       justify-content: space-between;
     }
 
-    textarea.sql-input {
-      width: 100%;
-      height: 135px;
-      font-family: 'Geist Mono', monospace;
-      font-size: 0.88rem;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 0.75rem;
-      color: var(--ink);
-      line-height: 1.5;
-      resize: vertical;
-      outline: none;
-    }
-
-    textarea.sql-input:focus {
-      border-color: var(--border-focus);
-    }
-
     .editor-pane {
       position: relative;
+    }
+
+    /* REPL Syntax Highlighted Editor */
+    .repl-editor-wrap {
+      position: relative;
+      width: 100%;
+      height: 150px;
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+
+    .repl-editor-wrap:focus-within {
+      border-color: #52525b;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 0 1px #52525b;
+    }
+
+    .sql-highlight, textarea.sql-input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0.85rem 1rem;
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.88rem;
+      line-height: 1.55;
+      letter-spacing: normal;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      word-break: break-word;
+      box-sizing: border-box;
+      border: none;
+      border-radius: 6px;
+      outline: none;
+      overflow: auto;
+      tab-size: 2;
+    }
+
+    .sql-highlight {
+      background: transparent;
+      color: #e4e4e7;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .sql-highlight code {
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
+      letter-spacing: inherit;
+      white-space: inherit;
+      word-wrap: inherit;
+      word-break: inherit;
+    }
+
+    textarea.sql-input {
+      background: transparent;
+      color: transparent;
+      caret-color: #38bdf8;
+      z-index: 2;
+      resize: none;
+    }
+
+    textarea.sql-input::selection {
+      background: rgba(56, 189, 248, 0.35);
+      color: transparent;
+    }
+
+    textarea.sql-input::placeholder {
+      color: #71717a;
     }
 
     /* REPL Autocomplete Popover */
     .autocomplete-popup {
       position: absolute;
-      top: 172px;
+      top: 188px;
       left: 1rem;
       z-index: 100;
       background: #121316;
@@ -814,11 +869,14 @@
             <span>Query Text (Cognitive or SQL) — Editable REPL</span>
             <span id="engineBadge" style="color: var(--sage-text); font-weight: 700;">Engine: Zero-Dep Fast Heuristic (&lt;0.1ms)</span>
           </div>
-          <textarea id="sqlInput" class="sql-input" spellcheck="false" placeholder="Type a JevQL or SQL query..."></textarea>
+          <div class="repl-editor-wrap">
+            <pre id="sqlHighlight" class="sql-highlight" aria-hidden="true"><code id="sqlHighlightCode"></code></pre>
+            <textarea id="sqlInput" class="sql-input" spellcheck="false" placeholder="Type a JevQL or SQL query..."></textarea>
+          </div>
           <div id="autocompletePopup" class="autocomplete-popup" style="display: none;"></div>
           <div class="editor-footer">
             <span>⌨ Press <kbd>⌘</kbd>+<kbd>Enter</kbd> to run · <kbd>Tab</kbd> or <kbd>Ctrl</kbd>+<kbd>Space</kbd> for auto-completion</span>
-            <span>Edit query text freely — executes in real-time natively in your browser</span>
+            <span>Real-time syntax highlighted REPL — executes natively in your browser</span>
           </div>
         </div>
 
@@ -1201,6 +1259,7 @@ ORDER BY security_prob DESC`
       document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
       event.target.classList.add('active');
       document.getElementById('sqlInput').value = presets[key];
+      if (typeof updateEditorHighlight === 'function') updateEditorHighlight();
       currentResults = null;
       currentAnalysis = null;
       currentAST = null;
@@ -1426,11 +1485,80 @@ ORDER BY security_prob DESC`
       { name: 'tickets', insert: 'tickets', type: 'column', badge: 'ac-badge-column', desc: 'Table reference' }
     ];
 
+    // --- REPL QUERY SYNTAX HIGHLIGHTER ---
+    function highlightQuery(text) {
+      if (!text) return '';
+      const tokenRegex = /(\/\/.*$|--.*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b\d+(?:\.\d+)?\b)|(->|=>|\?|~|\|{1,2}|={1,2}|!=|>=|<=|>|<)|(\b[a-zA-Z_][a-zA-Z0-9_]*\b)|([^\s\w"'`]+|\s+)/gm;
+
+      function escapeHtml(s) {
+        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
+      const SQL_KW = new Set([
+        'select', 'from', 'where', 'group', 'by', 'order', 'having', 'limit', 'offset',
+        'join', 'as', 'and', 'or', 'not', 'in', 'like', 'case', 'when', 'then', 'else', 'end',
+        'distinct', 'between', 'asc', 'desc', 'true', 'false', 'null', 'top', 'filter', 'take', 'sort'
+      ]);
+
+      const JEV_FN = new Set([
+        'choice', 'noul', 'score', 'semantic', 'confidence', 'prob', 'count', 'avg', 'sum', 'min', 'max'
+      ]);
+
+      const COLS = new Set([
+        'tickets', 'summary', 'status', 'team', 'priority', 'created_at', 'data', 'urgency', 'customer', 'body', 'department'
+      ]);
+
+      let html = '';
+      let match;
+      while ((match = tokenRegex.exec(text)) !== null) {
+        const [full, comment, str, num, op, word, other] = match;
+        if (comment) {
+          html += `<span class="hl-comment">${escapeHtml(comment)}</span>`;
+        } else if (str) {
+          html += `<span class="hl-string">${escapeHtml(str)}</span>`;
+        } else if (num) {
+          html += `<span class="hl-number">${escapeHtml(num)}</span>`;
+        } else if (op) {
+          html += `<span class="hl-operator">${escapeHtml(op)}</span>`;
+        } else if (word) {
+          const lower = word.toLowerCase();
+          if (JEV_FN.has(lower)) {
+            html += `<span class="hl-function">${escapeHtml(word)}</span>`;
+          } else if (SQL_KW.has(lower)) {
+            html += `<span class="hl-keyword">${escapeHtml(word)}</span>`;
+          } else if (COLS.has(lower)) {
+            html += `<span class="hl-constant">${escapeHtml(word)}</span>`;
+          } else {
+            html += escapeHtml(word);
+          }
+        } else {
+          html += escapeHtml(full);
+        }
+      }
+      if (text.endsWith('\n')) html += ' ';
+      return html;
+    }
+
     const sqlInputEl = document.getElementById('sqlInput');
+    const sqlHighlightPre = document.getElementById('sqlHighlight');
+    const sqlHighlightCode = document.getElementById('sqlHighlightCode');
     const popupEl = document.getElementById('autocompletePopup');
     let acVisible = false;
     let acIndex = 0;
     let acFiltered = [];
+
+    function updateEditorHighlight() {
+      if (sqlHighlightCode && sqlInputEl) {
+        sqlHighlightCode.innerHTML = highlightQuery(sqlInputEl.value);
+      }
+    }
+
+    if (sqlInputEl && sqlHighlightPre) {
+      sqlInputEl.addEventListener('scroll', () => {
+        sqlHighlightPre.scrollTop = sqlInputEl.scrollTop;
+        sqlHighlightPre.scrollLeft = sqlInputEl.scrollLeft;
+      });
+    }
 
     function getWordBeforeCursor(el) {
       const pos = el.selectionStart;
@@ -1498,6 +1626,7 @@ ORDER BY security_prob DESC`
       sqlInputEl.value = newText;
       sqlInputEl.selectionStart = newCursorPos;
       sqlInputEl.selectionEnd = newCursorPos;
+      updateEditorHighlight();
       hideAutocomplete();
       sqlInputEl.focus();
     }
@@ -1520,7 +1649,10 @@ ORDER BY security_prob DESC`
       }
     }
 
-    sqlInputEl.addEventListener('input', checkAutocompleteTrigger);
+    sqlInputEl.addEventListener('input', () => {
+      updateEditorHighlight();
+      checkAutocompleteTrigger();
+    });
 
     sqlInputEl.addEventListener('keydown', (e) => {
       // Execute shortcut: Cmd+Enter or Ctrl+Enter
@@ -1576,6 +1708,7 @@ ORDER BY security_prob DESC`
 
     // Initialize workbench
     sqlInputEl.value = presets.cognitive_incident;
+    updateEditorHighlight();
     renderTab();
     initSyntaxHighlighters();
   </script>
