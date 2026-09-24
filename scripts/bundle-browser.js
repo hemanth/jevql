@@ -9,15 +9,14 @@ const outPath = path.join(__dirname, '..', 'docs', 'jevql-engine.js');
 // Helper to strip imports/exports
 function getModuleBody(filename) {
   let code = fs.readFileSync(path.join(srcDir, filename), 'utf8');
-  // Strip node:* imports
-  code = code.replace(/import\s+crypto\s+from\s+['"]node:crypto['"];?/g, '');
-  code = code.replace(/import\s+fs\s+from\s+['"]node:fs['"];?/g, '');
-  code = code.replace(/import\s+path\s+from\s+['"]node:path['"];?/g, '');
-  code = code.replace(/import\s+.*?from\s+['"]\.\/.*?\.js['"];?/g, '');
+  // Strip all single-line and multi-line import statements
+  code = code.replace(/import\s+[\s\S]*?from\s+['"][^'"]+['"];?/g, '');
+  code = code.replace(/import\s+['"][^'"]+['"];?/g, '');
   // Remove export keywords and export blocks from declarations
-  code = code.replace(/^export\s*\{[\s\S]*?\};?/gm, '');
-  code = code.replace(/^export\s+default\s+function/gm, 'function');
-  code = code.replace(/^export\s+(class|function|const|let)/gm, '$1');
+  code = code.replace(/export\s*\{[\s\S]*?\};?/g, '');
+  code = code.replace(/export\s+default\s+function/g, 'function');
+  code = code.replace(/export\s+default\s+class/g, 'class');
+  code = code.replace(/export\s+(class|function|const|let|var)/g, '$1');
   return code;
 }
 

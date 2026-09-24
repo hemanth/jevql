@@ -3423,33 +3423,13 @@ class Executor {
 
 
 
-import {
-  JevClient,
-  BaseSemanticEngine,
-  TypeSafeJevEngine,
-  LLMStructuredEngine,
-  EmbeddingEngine,
-  HeuristicEngine,
-  WebMLKitEngine,
-  JevK5Engine,
-  registerEngine,
-  createEngine
-} from './jev.js';
 
 
 
 
 
-import {
-  startRepl,
-  createCompleter,
-  isQueryComplete,
-  inspectSchema,
-  SQL_KEYWORDS,
-  JEV_KEYWORDS,
-  COGNITIVE_KEYWORDS,
-  DOT_COMMANDS
-} from './repl.js';
+
+
 
 class JevQLDatabase {
   constructor(initialData = null, options = {}) {
