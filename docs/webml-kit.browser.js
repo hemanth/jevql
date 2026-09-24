@@ -1140,12 +1140,12 @@ async function listenMic(onChunk, options = {}) {
 
 // src/decision.ts
 var OPENJEV_MODELS = {
-  "minicpm5-2b": {
-    id: "minicpm5-2b",
-    name: "MiniCPM 5 2B (OpenJev)",
-    url: "https://huggingface.co/openjev/MiniCPM-2B-GGUF/resolve/main/minicpm-2b-q4_k_m.gguf",
-    family: "minicpm",
-    sizeMB: 1250
+  "jevk5": {
+    id: "jevk5",
+    name: "JevK5 (allebee/jevk5 · Qwen3.5-4B LoRA)",
+    url: "https://huggingface.co/alibiserikbay/JevK5",
+    family: "qwen",
+    sizeMB: 2450
   },
   "qwen3-0.6b": {
     id: "qwen3-0.6b",
@@ -1992,7 +1992,7 @@ async function directChoice(input, options) {
 // src/loader.ts
 async function inferTask(modelId) {
   const lower = modelId.toLowerCase();
-  if (lower.includes("openjev") || lower.includes("jev") || lower.includes("decision") || lower === "minicpm5-2b" || lower === "qwen3-0.6b" || lower === "qwen3.5-4b") {
+  if (lower.includes("openjev") || lower.includes("jev") || lower.includes("decision") || lower === "jevk5" || lower === "qwen3-0.6b" || lower === "qwen3.5-4b") {
     return "decision";
   }
   if (lower.includes("kokoro") || lower.includes("speecht5") || lower.includes("mms-tts") || lower.includes("tts")) {

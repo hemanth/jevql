@@ -7,6 +7,7 @@ import {
   EmbeddingEngine,
   HeuristicEngine,
   WebMLKitEngine,
+  JevK5Engine,
   registerEngine,
   createEngine
 } from './jev.js';
@@ -218,6 +219,7 @@ export {
   EmbeddingEngine,
   HeuristicEngine,
   WebMLKitEngine,
+  JevK5Engine,
   registerEngine,
   createEngine,
   formatTable,

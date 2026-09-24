@@ -77,6 +77,11 @@ export class WebMLKitEngine extends BaseSemanticEngine {
   mode: string;
   decisionEngine: any;
 }
+export class JevK5Engine extends BaseSemanticEngine {
+  model: string;
+  apiUrl?: string;
+  temperature?: number;
+}
 
 export function registerEngine(name: string, engineClass: new (options?: any) => BaseSemanticEngine): void;
 export function createEngine(nameOrInstance: string | BaseSemanticEngine, options?: any): BaseSemanticEngine;

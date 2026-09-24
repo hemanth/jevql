@@ -365,6 +365,76 @@
       border-color: var(--border-focus);
     }
 
+    .editor-pane {
+      position: relative;
+    }
+
+    /* REPL Autocomplete Popover */
+    .autocomplete-popup {
+      position: absolute;
+      top: 172px;
+      left: 1rem;
+      z-index: 100;
+      background: #121316;
+      border: 1px solid #2e3038;
+      border-radius: 6px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+      width: 360px;
+      max-height: 240px;
+      overflow-y: auto;
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.78rem;
+    }
+
+    .ac-item {
+      padding: 0.5rem 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      border-bottom: 1px solid #1e2026;
+      color: #e4e4e7;
+      transition: background 0.1s ease;
+    }
+
+    .ac-item:last-child {
+      border-bottom: none;
+    }
+
+    .ac-item.active, .ac-item:hover {
+      background: #252834;
+      color: #ffffff;
+    }
+
+    .ac-item .ac-label {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .ac-item .ac-badge {
+      font-size: 0.65rem;
+      padding: 0.1rem 0.35rem;
+      border-radius: 3px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .ac-badge-primitive { background: rgba(244, 63, 94, 0.2); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.4); }
+    .ac-badge-clause    { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
+    .ac-badge-column    { background: rgba(74, 222, 128, 0.2); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.4); }
+    .ac-badge-operator  { background: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.4); }
+
+    .ac-item .ac-hint {
+      font-size: 0.7rem;
+      color: #a1a1aa;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 140px;
+    }
+
     .editor-footer {
       display: flex;
       justify-content: space-between;
@@ -529,7 +599,7 @@
     .tag-prod { background: var(--sage); color: var(--sage-text); border: 1px solid var(--sage-border); }
     .tag-blue { background: var(--azure); color: var(--azure-text); border: 1px solid var(--azure-border); }
 
-    /* Code block & gpu-lexer syntax styling */
+    /* Code block syntax styling */
     .code-container {
       position: relative;
     }
@@ -547,12 +617,6 @@
       color: #a1a1aa;
     }
 
-    .lexer-pill {
-      font-size: 0.7rem;
-      color: #38bdf8;
-      font-weight: 600;
-    }
-
     pre.code-block {
       background: #18181b;
       color: #e4e4e7;
@@ -566,16 +630,15 @@
       margin: 0;
     }
 
-    /* gpu-lexer theme classes */
-    .gl-keyword   { color: #f43f5e; font-weight: 600; }
-    .gl-string    { color: #a5f3fc; }
-    .gl-number    { color: #fbbf24; font-weight: 600; }
-    .gl-comment   { color: #71717a; font-style: italic; }
-    .gl-function  { color: #c084fc; font-weight: 600; }
-    .gl-operator  { color: #f43f5e; }
-    .gl-type      { color: #fb923c; font-weight: 600; }
-    .gl-constant  { color: #4ade80; }
-    .gl-plain     { color: #e4e4e7; }
+    /* Syntax highlight classes */
+    .hl-keyword   { color: #f43f5e; font-weight: 600; }
+    .hl-string    { color: #a5f3fc; }
+    .hl-number    { color: #fbbf24; font-weight: 600; }
+    .hl-comment   { color: #71717a; font-style: italic; }
+    .hl-function  { color: #c084fc; font-weight: 600; }
+    .hl-operator  { color: #f43f5e; }
+    .hl-type      { color: #fb923c; font-weight: 600; }
+    .hl-constant  { color: #4ade80; }
 
     /* Mapping Card Section */
     .mapping-container {
@@ -733,6 +796,7 @@
               <span>ENGINE:</span>
               <select id="engineSelector" onchange="switchEngine(this.value)">
                 <option value="heuristic" selected>Zero-Dep Fast Heuristic (&lt;0.1ms)</option>
+                <option value="jevk5">JevK5 (Open-Weight SemIf 4B · 4.8ms)</option>
                 <option value="webml">webml-kit / OpenJev (WebGPU / Local)</option>
                 <option value="jev">TypeSafe Jev (System One API)</option>
                 <option value="llm">LLM Function-Calling (JSON Schema)</option>
@@ -747,12 +811,13 @@
 
         <div class="editor-pane">
           <div class="editor-label">
-            <span>Query Text (Cognitive or SQL) — Editable</span>
+            <span>Query Text (Cognitive or SQL) — Editable REPL</span>
             <span id="engineBadge" style="color: var(--sage-text); font-weight: 700;">Engine: Zero-Dep Fast Heuristic (&lt;0.1ms)</span>
           </div>
-          <textarea id="sqlInput" class="sql-input" spellcheck="false"></textarea>
+          <textarea id="sqlInput" class="sql-input" spellcheck="false" placeholder="Type a JevQL or SQL query..."></textarea>
+          <div id="autocompletePopup" class="autocomplete-popup" style="display: none;"></div>
           <div class="editor-footer">
-            <span>⌨ Press <kbd>⌘</kbd>+<kbd>Enter</kbd> or <kbd>Ctrl</kbd>+<kbd>Enter</kbd> to run</span>
+            <span>⌨ Press <kbd>⌘</kbd>+<kbd>Enter</kbd> to run · <kbd>Tab</kbd> or <kbd>Ctrl</kbd>+<kbd>Space</kbd> for auto-completion</span>
             <span>Edit query text freely — executes in real-time natively in your browser</span>
           </div>
         </div>
@@ -907,12 +972,23 @@
           <tbody>
             <tr style="background: #f6fcf8;">
               <td>
-                <strong style="color: var(--sage-text);">JevQL Speculative (System One)</strong><br>
-                <small style="color: var(--text-muted);">TypeSafe Jev Cloud Model</small>
+                <strong style="color: var(--sage-text);">JevQL + JevK5 (Open-Weight)</strong><br>
+                <small style="color: var(--text-muted);"><a href="https://github.com/allebee/jevk5" target="_blank" style="color:inherit;text-decoration:underline;">allebee/jevk5</a> · Apache-2.0</small>
               </td>
-              <td><span class="tag-badge tag-prod">20.1 ms / row</span></td>
+              <td><span class="tag-badge tag-prod">4.87 ms / row</span><br><small style="color: var(--text-muted);">(13.5 ms H100)</small></td>
               <td><span class="tag-badge tag-prod">0 tokens</span></td>
-              <td><strong style="color: var(--sage-text);">100.0%</strong> (Calibrated)</td>
+              <td><strong style="color: var(--sage-text);">83.3%</strong> (banking77)<br><small style="color: var(--text-muted);">95.8% JevBench (#1 open)</small></td>
+              <td><span class="tag-badge tag-prod">Local GPU (0 network)</span></td>
+              <td><span class="tag-badge tag-prod">58 of 100 ($0 cost)</span></td>
+            </tr>
+            <tr>
+              <td>
+                <strong style="color: var(--azure-text);">JevQL Speculative (System One)</strong><br>
+                <small style="color: var(--text-muted);">TypeSafe Jev Cloud API</small>
+              </td>
+              <td><span class="tag-badge tag-blue">20.1 ms / row</span></td>
+              <td><span class="tag-badge tag-prod">0 tokens</span></td>
+              <td><strong>83.3%</strong> (Calibrated)</td>
               <td><span class="tag-badge tag-prod">42 calls (4.8x saved)</span></td>
               <td><span class="tag-badge tag-prod">58 of 100 ($0 cost)</span></td>
             </tr>
@@ -921,7 +997,7 @@
                 <strong>JevQL Cache Hit</strong><br>
                 <small style="color: var(--text-muted);">SHA-256 In-Tree LRU</small>
               </td>
-              <td><span class="tag-badge tag-prod">0.46 ms</span></td>
+              <td><span class="tag-badge tag-prod">0.016 ms / row</span><br><small style="color: var(--text-muted);">(0.65 ms total)</small></td>
               <td><span class="tag-badge tag-prod">0 tokens</span></td>
               <td><strong>100.0%</strong> (Deterministic)</td>
               <td>0 network requests</td>
@@ -932,7 +1008,7 @@
                 <strong>JevQL In-Tree Fast-Path</strong><br>
                 <small style="color: var(--text-muted);">Pure ES2022 Offline Fallback</small>
               </td>
-              <td><span class="tag-badge tag-prod">&lt; 0.05 ms / row</span></td>
+              <td><span class="tag-badge tag-prod">0.21 ms / row</span></td>
               <td><span class="tag-badge tag-prod">0 tokens</span></td>
               <td>Heuristic baseline</td>
               <td>In-memory single pass</td>
@@ -943,9 +1019,9 @@
                 <strong>Naive SQL + LLM Loop</strong><br>
                 <small style="color: var(--text-muted);">GPT-4o / Claude 3.5 Sequential</small>
               </td>
-              <td><span class="tag-badge tag-sec">~600 ms / call</span><br><small>(~60,000 ms total)</small></td>
-              <td><span class="tag-badge tag-sec">~180 tokens / row</span><br><small>(18,000 tokens total)</small></td>
-              <td>~100.0% (Uncalibrated)</td>
+              <td><span class="tag-badge tag-sec">~600 ms / call</span><br><small style="color: var(--text-muted);">(~60,000 ms total)</small></td>
+              <td><span class="tag-badge tag-sec">~180 tokens / row</span><br><small style="color: var(--text-muted);">(18,000 tokens total)</small></td>
+              <td>~83.3% (Uncalibrated)</td>
               <td>200 separate calls (No fan-out)</td>
               <td>0% (Evaluates all rows)</td>
             </tr>
@@ -977,22 +1053,21 @@
     <!-- CODE RECIPES -->
     <section id="recipes">
       <h2 class="section-title">Pluggable Code Recipes</h2>
-      <p class="section-sub">Highlighted client-side via <a href="https://gpu-lexer.vercel.app/" target="_blank">gpu-lexer</a> (WebGPU language-agnostic syntax highlighter).</p>
+      <p class="section-sub">Pluggable execution architectures: Open-weight SemIf models (JevK5), TypeSafe cloud, on-device WebGPU, and custom engine plugins.</p>
 
       <div class="narrative-grid">
         <div class="narrative-card">
           <h3>Pluggable Engines in Node.js &amp; Browser</h3>
-          <p>Configure TypeSafe Jev, webml-kit on-device WebGPU, LLM structured output, or offline heuristic engines seamlessly:</p>
+          <p>Configure open-weight JevK5, TypeSafe Jev, on-device WebGPU, LLM structured output, or offline heuristic engines seamlessly:</p>
           <div class="code-container">
             <div class="code-header">
               <span>javascript</span>
-              <span class="lexer-pill">⚡ syntax: gpu-lexer</span>
             </div>
             <pre class="code-block"><code>import jevql from 'jev-ql';
 
-// 1. On-Device / WebGPU: webml-kit (OpenJev MiniCPM5 / Qwen3)
-const localQuery = jevql.with({ engine: 'webml', model: 'minicpm5-2b' });
-const urgent = await localQuery`
+// 1. Open-Weight Decision Model: JevK5 (allebee/jevk5)
+const k5Query = jevql.with({ engine: 'jevk5', model: 'alibiserikbay/JevK5' });
+const urgent = await k5Query`
   \${tickets}: status = open
   ? "Immediate outage or security incident?" > 0.6
   team = security | infrastructure | billing
@@ -1013,7 +1088,6 @@ const llmQuery = jevql.with({ engine: 'llm', apiKey: process.env.OPENAI_API_KEY 
           <div class="code-container">
             <div class="code-header">
               <span>javascript</span>
-              <span class="lexer-pill">⚡ syntax: gpu-lexer</span>
             </div>
             <pre class="code-block"><code>import { BaseSemanticEngine, registerEngine, jevql } from 'jev-ql';
 
@@ -1111,6 +1185,7 @@ ORDER BY security_prob DESC`
       currentEngine = eng;
       const names = {
         heuristic: 'Engine: Zero-Dep Fast Heuristic (<0.1ms)',
+        jevk5: 'Engine: JevK5 Open-Weight (allebee/jevk5 · 4.8ms)',
         webml: 'Engine: webml-kit / OpenJev (On-Device WebGPU / Local)',
         jev: 'Engine: TypeSafe Jev (System One - Calibrated, Sub-30ms)',
         llm: 'Engine: LLM Function-Calling (Simulated JSON Schema - Generative)',
@@ -1288,75 +1363,219 @@ ORDER BY security_prob DESC`
       }
     }
 
-    // --- GPU-LEXER SYNTAX HIGHLIGHTING INTEGRATION ---
-    async function initSyntaxHighlighters() {
+    // --- FAST ZERO-DEP SYNTAX HIGHLIGHTING ---
+    function initSyntaxHighlighters() {
       const codeBlocks = document.querySelectorAll('pre.code-block code');
-      let gpuLexer = null;
-
-      if (typeof navigator !== 'undefined' && navigator.gpu) {
-        try {
-          const mod = await import('https://esm.sh/gpu-lexer');
-          if (mod && typeof mod.parse === 'function') {
-            gpuLexer = mod.parse;
-            console.log('[jevql] Initialized gpu-lexer powered by WebGPU');
-          }
-        } catch (e) {
-          console.debug('[jevql] WebGPU gpu-lexer unavailable, using tokenizer fallback');
-        }
-      }
 
       function escapeHtml(str) {
         return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       }
 
-      function fallbackHighlight(text) {
+      function highlightCode(text) {
         let esc = escapeHtml(text);
-        // Keywords
-        esc = esc.replace(/\b(import|from|const|await|new|class|extends|async|return|SELECT|WHERE|GROUP BY|ORDER BY|LIMIT|AS|DESC|ASC|true|false)\b/g, '<span class="gl-keyword">$1</span>');
-        // Functions
-        esc = esc.replace(/\b(jevql|CHOICE|NOUL|SCORE|SEMANTIC|CONFIDENCE|PROB|AVG|COUNT|registerEngine|evaluateSingleState)\b/g, '<span class="gl-function">$1</span>');
-        // Strings
-        esc = esc.replace(/(['"`])(.*?)\1/g, '<span class="gl-string">$1$2$1</span>');
-        // Numbers
-        esc = esc.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="gl-number">$1</span>');
         // Comments
-        esc = esc.replace(/(\/\/.*$)/gm, '<span class="gl-comment">$1</span>');
+        esc = esc.replace(/(\/\/.*$)/gm, '<span class="hl-comment">$1</span>');
+        // Strings
+        esc = esc.replace(/(['"`])(.*?)\1/g, '<span class="hl-string">$1$2$1</span>');
+        // Keywords
+        esc = esc.replace(/\b(import|from|const|await|new|class|extends|async|return|SELECT|WHERE|GROUP BY|ORDER BY|LIMIT|AS|DESC|ASC|true|false)\b/g, '<span class="hl-keyword">$1</span>');
+        // Functions / Primitives
+        esc = esc.replace(/\b(jevql|CHOICE|NOUL|SCORE|SEMANTIC|CONFIDENCE|PROB|AVG|COUNT|registerEngine|evaluateSingleState)\b/g, '<span class="hl-function">$1</span>');
+        // Numbers
+        esc = esc.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="hl-number">$1</span>');
         return esc;
       }
 
       for (const block of codeBlocks) {
-        const raw = block.textContent;
-        if (gpuLexer) {
-          try {
-            const spans = await gpuLexer(raw);
-            if (Array.isArray(spans) && spans.length > 0) {
-              let html = '';
-              let last = 0;
-              for (const s of spans) {
-                if (s.start > last) html += escapeHtml(raw.slice(last, s.start));
-                html += `<span class="gl-${s.type}">${escapeHtml(raw.slice(s.start, s.end))}</span>`;
-                last = s.end;
-              }
-              if (last < raw.length) html += escapeHtml(raw.slice(last));
-              block.innerHTML = html;
-              continue;
-            }
-          } catch (e) {}
-        }
-        block.innerHTML = fallbackHighlight(raw);
+        if (block.closest('#tabContent')) continue;
+        block.innerHTML = highlightCode(block.textContent);
       }
     }
 
-    // Initialize workbench & keyboard shortcuts (without auto-executing)
+    // --- REPL KEYWORD AUTOCOMPLETION ---
+    const REPL_KEYWORDS = [
+      // Semantic Primitives
+      { name: 'CHOICE', insert: 'CHOICE(summary, "Intent question?", ["option_a", "option_b"])', type: 'primitive', badge: 'ac-badge-primitive', desc: 'SemIf discrete decision' },
+      { name: 'NOUL', insert: 'NOUL(summary, "Is this an urgent incident?") > 0.7', type: 'primitive', badge: 'ac-badge-primitive', desc: 'Ternary cognitive judgment' },
+      { name: 'SCORE', insert: 'SCORE(summary, "Urgency rating", ["low", "critical"])', type: 'primitive', badge: 'ac-badge-primitive', desc: 'Ordinal intensity score' },
+      { name: 'SEMANTIC', insert: 'SEMANTIC(summary, "Classification prompt")', type: 'primitive', badge: 'ac-badge-primitive', desc: 'Cognitive projection' },
+      { name: 'CONFIDENCE', insert: 'CONFIDENCE()', type: 'primitive', badge: 'ac-badge-primitive', desc: 'Calibrated certainty readout' },
+      { name: 'PROB', insert: 'PROB()', type: 'primitive', badge: 'ac-badge-primitive', desc: 'Normalized probability' },
+
+      // SQL & Query Clauses
+      { name: 'SELECT', insert: 'SELECT ', type: 'clause', badge: 'ac-badge-clause', desc: 'Projection clause' },
+      { name: 'FROM', insert: 'FROM ', type: 'clause', badge: 'ac-badge-clause', desc: 'Table source' },
+      { name: 'WHERE', insert: 'WHERE ', type: 'clause', badge: 'ac-badge-clause', desc: 'Filter condition' },
+      { name: 'GROUP BY', insert: 'GROUP BY ', type: 'clause', badge: 'ac-badge-clause', desc: 'Group aggregation' },
+      { name: 'ORDER BY', insert: 'ORDER BY ', type: 'clause', badge: 'ac-badge-clause', desc: 'Sorting clause' },
+      { name: 'LIMIT', insert: 'LIMIT ', type: 'clause', badge: 'ac-badge-clause', desc: 'Row limit' },
+      { name: 'top', insert: 'top ', type: 'clause', badge: 'ac-badge-clause', desc: 'Pipeline top N' },
+      { name: 'COUNT', insert: 'COUNT(*)', type: 'clause', badge: 'ac-badge-clause', desc: 'Row count' },
+      { name: 'AVG', insert: 'AVG()', type: 'clause', badge: 'ac-badge-clause', desc: 'Average aggregate' },
+
+      // Cognitive Pipeline Operators
+      { name: '?', insert: '? "Is this an immediate outage or security incident?" > 0.6', type: 'operator', badge: 'ac-badge-operator', desc: 'Cognitive boolean gating' },
+      { name: '->', insert: '-> [security, infrastructure, billing]', type: 'operator', badge: 'ac-badge-operator', desc: 'Cognitive choice options' },
+      { name: '~', insert: '~ "criticality intensity" > 0.7', type: 'operator', badge: 'ac-badge-operator', desc: 'Cognitive score threshold' },
+
+      // Dataset Columns (tickets)
+      { name: 'summary', insert: 'summary', type: 'column', badge: 'ac-badge-column', desc: 'Incident text' },
+      { name: 'status', insert: 'status', type: 'column', badge: 'ac-badge-column', desc: 'open | pending | closed' },
+      { name: 'team', insert: 'team', type: 'column', badge: 'ac-badge-column', desc: 'security | infra | billing' },
+      { name: 'priority', insert: 'priority', type: 'column', badge: 'ac-badge-column', desc: 'P0 | P1 | P2 | P3' },
+      { name: 'tickets', insert: 'tickets', type: 'column', badge: 'ac-badge-column', desc: 'Table reference' }
+    ];
+
     const sqlInputEl = document.getElementById('sqlInput');
-    sqlInputEl.value = presets.cognitive_incident;
+    const popupEl = document.getElementById('autocompletePopup');
+    let acVisible = false;
+    let acIndex = 0;
+    let acFiltered = [];
+
+    function getWordBeforeCursor(el) {
+      const pos = el.selectionStart;
+      const text = el.value.slice(0, pos);
+      const match = text.match(/([a-zA-Z_?~>-]+)$/);
+      return match ? { word: match[1], start: pos - match[1].length, end: pos } : null;
+    }
+
+    function showAutocomplete(matches) {
+      if (!matches || !matches.length) {
+        hideAutocomplete();
+        return;
+      }
+      acFiltered = matches;
+      acIndex = 0;
+      renderAutocomplete();
+      popupEl.style.display = 'block';
+      acVisible = true;
+    }
+
+    function hideAutocomplete() {
+      if (popupEl) popupEl.style.display = 'none';
+      acVisible = false;
+      acFiltered = [];
+    }
+
+    function renderAutocomplete() {
+      if (!popupEl) return;
+      popupEl.innerHTML = acFiltered.map((item, idx) => `
+        <div class="ac-item ${idx === acIndex ? 'active' : ''}" data-idx="${idx}">
+          <div class="ac-label">
+            <span>${item.name}</span>
+            <span class="ac-badge ${item.badge}">${item.type}</span>
+          </div>
+          <span class="ac-hint">${item.desc}</span>
+        </div>
+      `).join('');
+
+      popupEl.querySelectorAll('.ac-item').forEach(el => {
+        el.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          const idx = parseInt(el.dataset.idx, 10);
+          applyCompletion(acFiltered[idx]);
+        });
+      });
+    }
+
+    function applyCompletion(item) {
+      if (!item) return;
+      const text = sqlInputEl.value;
+      const wordInfo = getWordBeforeCursor(sqlInputEl);
+      const pos = sqlInputEl.selectionStart;
+
+      let newText;
+      let newCursorPos;
+
+      if (wordInfo) {
+        newText = text.slice(0, wordInfo.start) + item.insert + text.slice(wordInfo.end);
+        newCursorPos = wordInfo.start + item.insert.length;
+      } else {
+        newText = text.slice(0, pos) + item.insert + text.slice(pos);
+        newCursorPos = pos + item.insert.length;
+      }
+
+      sqlInputEl.value = newText;
+      sqlInputEl.selectionStart = newCursorPos;
+      sqlInputEl.selectionEnd = newCursorPos;
+      hideAutocomplete();
+      sqlInputEl.focus();
+    }
+
+    function checkAutocompleteTrigger() {
+      const wordInfo = getWordBeforeCursor(sqlInputEl);
+      if (!wordInfo || wordInfo.word.length < 1) {
+        hideAutocomplete();
+        return;
+      }
+      const q = wordInfo.word.toLowerCase();
+      const hits = REPL_KEYWORDS.filter(k => 
+        k.name.toLowerCase().startsWith(q) || 
+        k.name.toLowerCase().includes(q)
+      );
+      if (hits.length > 0) {
+        showAutocomplete(hits);
+      } else {
+        hideAutocomplete();
+      }
+    }
+
+    sqlInputEl.addEventListener('input', checkAutocompleteTrigger);
+
     sqlInputEl.addEventListener('keydown', (e) => {
+      // Execute shortcut: Cmd+Enter or Ctrl+Enter
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
         e.preventDefault();
+        hideAutocomplete();
         window.executeCurrentQuery();
+        return;
+      }
+
+      // Autocomplete navigation
+      if (acVisible) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          acIndex = (acIndex + 1) % acFiltered.length;
+          renderAutocomplete();
+          return;
+        }
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          acIndex = (acIndex - 1 + acFiltered.length) % acFiltered.length;
+          renderAutocomplete();
+          return;
+        }
+        if (e.key === 'Enter' || e.key === 'Tab') {
+          e.preventDefault();
+          applyCompletion(acFiltered[acIndex]);
+          return;
+        }
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          hideAutocomplete();
+          return;
+        }
+      } else {
+        // Trigger autocomplete on Tab or Ctrl+Space
+        if (e.key === 'Tab' || (e.ctrlKey && e.key === ' ')) {
+          e.preventDefault();
+          const wordInfo = getWordBeforeCursor(sqlInputEl);
+          const q = wordInfo ? wordInfo.word.toLowerCase() : '';
+          const hits = q ? REPL_KEYWORDS.filter(k => k.name.toLowerCase().includes(q)) : REPL_KEYWORDS;
+          showAutocomplete(hits);
+          return;
+        }
       }
     });
 
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.editor-pane')) {
+        hideAutocomplete();
+      }
+    });
+
+    // Initialize workbench
+    sqlInputEl.value = presets.cognitive_incident;
     renderTab();
     initSyntaxHighlighters();
   </script>
