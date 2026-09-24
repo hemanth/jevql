@@ -1454,27 +1454,52 @@ ORDER BY security_prob DESC`
       }
     }
 
-    // --- FAST ZERO-DEP SYNTAX HIGHLIGHTING ---
+    // --- FAST ZERO-DEP SYNTAX HIGHLIGHTING (Single-Pass Tokenizer) ---
     function initSyntaxHighlighters() {
       const codeBlocks = document.querySelectorAll('pre.code-block code');
 
-      function escapeHtml(str) {
-        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      function escapeHtml(s) {
+        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       }
 
+      const JS_KW = new Set([
+        'import', 'from', 'export', 'default', 'const', 'let', 'var', 'await', 'async',
+        'function', 'class', 'extends', 'new', 'return', 'if', 'else', 'for', 'while',
+        'try', 'catch', 'throw', 'true', 'false', 'null', 'undefined',
+        'SELECT', 'FROM', 'WHERE', 'GROUP', 'BY', 'ORDER', 'LIMIT', 'AS', 'DESC', 'ASC'
+      ]);
+
+      const JS_FN = new Set([
+        'jevql', 'CHOICE', 'NOUL', 'SCORE', 'SEMANTIC', 'CONFIDENCE', 'PROB',
+        'registerEngine', 'evaluateSingleState', 'analyze', 'query', 'with', 'COUNT', 'AVG'
+      ]);
+
       function highlightCode(text) {
-        let esc = escapeHtml(text);
-        // Comments
-        esc = esc.replace(/(\/\/.*$)/gm, '<span class="hl-comment">$1</span>');
-        // Strings
-        esc = esc.replace(/(['"`])(.*?)\1/g, '<span class="hl-string">$1$2$1</span>');
-        // Keywords
-        esc = esc.replace(/\b(import|from|const|await|new|class|extends|async|return|SELECT|WHERE|GROUP BY|ORDER BY|LIMIT|AS|DESC|ASC|true|false)\b/g, '<span class="hl-keyword">$1</span>');
-        // Functions / Primitives
-        esc = esc.replace(/\b(jevql|CHOICE|NOUL|SCORE|SEMANTIC|CONFIDENCE|PROB|AVG|COUNT|registerEngine|evaluateSingleState)\b/g, '<span class="hl-function">$1</span>');
-        // Numbers
-        esc = esc.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="hl-number">$1</span>');
-        return esc;
+        if (!text) return '';
+        const tokenRegex = /(\/\/.*$|\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`[\s\S]*?`)|(\b\d+(?:\.\d+)?\b)|(\b[a-zA-Z_$][a-zA-Z0-9_$]*\b)|([^\s\w"'`]+|\s+)/gm;
+        let html = '';
+        let match;
+        while ((match = tokenRegex.exec(text)) !== null) {
+          const [full, comment, str, num, word, other] = match;
+          if (comment) {
+            html += `<span class="hl-comment">${escapeHtml(comment)}</span>`;
+          } else if (str) {
+            html += `<span class="hl-string">${escapeHtml(str)}</span>`;
+          } else if (num) {
+            html += `<span class="hl-number">${escapeHtml(num)}</span>`;
+          } else if (word) {
+            if (JS_FN.has(word)) {
+              html += `<span class="hl-function">${escapeHtml(word)}</span>`;
+            } else if (JS_KW.has(word)) {
+              html += `<span class="hl-keyword">${escapeHtml(word)}</span>`;
+            } else {
+              html += escapeHtml(word);
+            }
+          } else {
+            html += escapeHtml(full);
+          }
+        }
+        return html;
       }
 
       for (const block of codeBlocks) {
