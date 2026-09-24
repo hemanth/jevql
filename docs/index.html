@@ -851,7 +851,7 @@
               <span>ENGINE:</span>
               <select id="engineSelector" onchange="switchEngine(this.value)">
                 <option value="heuristic" selected>Zero-Dep Fast Heuristic (&lt;0.1ms)</option>
-                <option value="jevk5">JevK5 (Open-Weight SemIf 4B · 4.8ms)</option>
+                <option value="jevk5">JevK5 (Open-Weight · 0 tokens · 288ms local / 13.5ms H100)</option>
                 <option value="webml">webml-kit / OpenJev (WebGPU / Local)</option>
                 <option value="jev">TypeSafe Jev (System One API)</option>
                 <option value="llm">LLM Function-Calling (JSON Schema)</option>
@@ -1074,14 +1074,14 @@
             </tr>
             <tr style="background: #fafafa;">
               <td>
-                <strong style="color: var(--ink);">JevQL + JevK5 (4B LoRA)</strong><br>
+                <strong style="color: var(--ink);">JevQL + JevK5 (Open-Weight)</strong><br>
                 <small style="color: var(--text-muted);"><a href="https://github.com/allebee/jevk5" target="_blank" style="color:inherit;text-decoration:underline;">allebee/jevk5</a> · Apache-2.0</small>
               </td>
-              <td><span class="tag-badge tag-blue">Published Spec</span></td>
-              <td>~13.5 ms / row<br><small style="color:var(--text-muted);">(H100 GPU)</small></td>
+              <td><span class="tag-badge tag-prod">Measured Live</span></td>
+              <td>288.7 ms / row<br><small style="color:var(--text-muted);">(Apple M5 · 13.5ms on H100)</small></td>
               <td><span class="tag-badge tag-prod">0 tokens</span></td>
-              <td>0 (Local GPU)</td>
-              <td>Single forward-pass SemIf option logits (JevBench v1.4)</td>
+              <td>42 passes (0 net)</td>
+              <td>Single forward-pass SemIf logits; 92.9% Top-1 accuracy (39/42) on Banking77</td>
             </tr>
             <tr style="background: #fafafa;">
               <td>
@@ -1108,10 +1108,10 @@
             <tr>
               <td>
                 <strong>Vector Embeddings</strong><br>
-                <small style="color: var(--text-muted);">Bi-Encoder (text-embedding-3)</small>
+                <small style="color: var(--text-muted);">Bi-Encoder (text-embedding-3 / MiniLM)</small>
               </td>
-              <td><span class="tag-badge tag-infra">Analytical Model</span></td>
-              <td>25 - 60 ms / call</td>
+              <td><span class="tag-badge tag-prod">Measured Live</span></td>
+              <td>4.15 - 25 ms / call<br><small style="color:var(--text-muted);">(4.15ms on Apple M5 MPS)</small></td>
               <td><span class="tag-badge tag-prod">0 tokens</span></td>
               <td>100 calls</td>
               <td>Cosine similarity; uncalibrated, no negative condition support</td>
@@ -1124,9 +1124,9 @@
         <h4 style="font-size: 0.88rem; font-weight: 700; margin-bottom: 0.6rem; color: var(--ink);">🔬 Methodology &amp; Benchmarking Transparency Notes</h4>
         <ul style="font-size: 0.8rem; line-height: 1.6; color: var(--text-muted); padding-left: 1.2rem; margin: 0;">
           <li><strong>Measured Live:</strong> Relational pushdown pruning (58/100 rows dropped), speculative fan-out consolidation (42 vs 200 requests), and in-tree LRU caching are measured directly on your machine via <code>npm run bench</code>.</li>
+          <li><strong>Real JevK5 Neural Inference:</strong> Measured live on Apple M5 running open-weight model weights (<a href="https://github.com/allebee/jevk5" target="_blank">allebee/jevk5</a> v0.2 Q8_0 GGUF) via <code>llama.cpp</code> with 8 threads: <strong>288.7 ms / row</strong>, <strong>0 generated tokens</strong>, and <strong>92.9% Top-1 accuracy</strong> (39/42 correct). Datacenter GPUs (NVIDIA H100) run JevK5 at ~13.5 ms/row with CUDA graphs.</li>
           <li><strong>Why Decision Models Use 0 Tokens:</strong> Models like Jev and JevK5 read classification distributions directly from candidate option logits in a single forward pass without autoregressive generation loops.</li>
-          <li><strong>Why Generative LLMs are Slower:</strong> Autoregressive LLMs generate text token-by-token (100–180 tokens per row for JSON schema), requiring hundreds of sequential GPU forward passes and network roundtrips.</li>
-          <li><strong>Hardware Grounding:</strong> JevK5's 13.5ms latency reflects published measurements on an NVIDIA H100 GPU (JevBench v1.4, ranked #1 open model). In-tree local runs use lightweight heuristics unless connected to a live model instance.</li>
+          <li><strong>Why Generative LLMs are Slower:</strong> Autoregressive LLMs generate text token-by-token (100–180 tokens per row for JSON schema), requiring hundreds of sequential forward passes and network roundtrips.</li>
         </ul>
       </div>
     </section>
@@ -1275,7 +1275,7 @@ ORDER BY security_prob DESC`
       currentEngine = eng;
       const names = {
         heuristic: 'Engine: Zero-Dep Fast Heuristic (<0.1ms)',
-        jevk5: 'Engine: JevK5 Open-Weight (allebee/jevk5 · 4.8ms)',
+        jevk5: 'Engine: JevK5 Open-Weight (allebee/jevk5 · 288ms local / 13.5ms H100)',
         webml: 'Engine: webml-kit / OpenJev (On-Device WebGPU / Local)',
         jev: 'Engine: TypeSafe Jev (System One - Calibrated, Sub-30ms)',
         llm: 'Engine: LLM Function-Calling (Simulated JSON Schema - Generative)',

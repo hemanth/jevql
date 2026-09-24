@@ -129,4 +129,21 @@ test('evaluates NOUL, CHOICE, and SCORE with WebMLKitEngine', async () => {
   assert.strictEqual(typeof rows[0].urgency_score, 'number');
 });
 
+test('executes queries with JevK5Engine (allebee/jevk5)', async () => {
+  const db = new JevQLDatabase(tickets, { engine: 'jevk5' });
+  const rows = await db.query(`
+    SELECT
+      id,
+      NOUL(message, 'Is this a database or infrastructure incident?') AS is_incident,
+      CHOICE(message, 'Responsible team', ['infrastructure', 'billing']) AS team
+    FROM data
+    WHERE id = 'T-1'
+  `);
+
+  assert.strictEqual(rows.length, 1);
+  assert.strictEqual(rows[0].id, 'T-1');
+  assert.strictEqual(typeof rows[0].is_incident, 'number');
+  assert.strictEqual(rows[0].team, 'infrastructure');
+});
+
 

@@ -2664,13 +2664,24 @@ class JevK5Engine extends BaseSemanticEngine {
     this.name = 'jevk5';
     this.model = options.model || 'alibiserikbay/JevK5';
     this.apiUrl = options.apiUrl || (typeof process !== 'undefined' ? process.env?.JEVK5_API_URL : null) || 'http://localhost:8000/v1/systemone';
-    this.temperature = options.temperature || 0.7;
+    this.ggufUrl = options.ggufUrl || (typeof process !== 'undefined' ? process.env?.JEVK5_GGUF_URL : null) || 'http://127.0.0.1:8080';
+    this.temperature = options.temperature || 1.42;
     this.fallbackEngine = new HeuristicEngine(options);
   }
 
   async evaluateSingleState(state, questions, options = {}) {
-    // If a live JevK5 server is available, invoke its /v1/systemone endpoint
-    if (this.apiUrl) {
+    // 1. If live llama-server GGUF runner is available, perform single forward pass option-logit readout
+    if (this.ggufUrl && typeof fetch !== 'undefined') {
+      try {
+        const answers = await this._evaluateGGUF(state, questions, options);
+        if (answers && Object.keys(answers).length > 0) return answers;
+      } catch (_) {
+        // Fall through to API or fallback
+      }
+    }
+
+    // 2. If a live JevK5 /v1/systemone server is available, invoke its endpoint
+    if (this.apiUrl && typeof fetch !== 'undefined') {
       try {
         const body = JSON.stringify({
           model: this.model,
@@ -2692,6 +2703,109 @@ class JevK5Engine extends BaseSemanticEngine {
     }
 
     return this._evaluateSemIf(state, questions, options);
+  }
+
+  async _evaluateGGUF(state, questions, options = {}) {
+    const LETTERS = 'ABCDEFGHIJKLMNOP';
+    const SYSTEM = 'Apply the supplied criterion to the supplied evidence. Choose exactly one listed option. Respond with only its uppercase letter, with no explanation or reasoning.';
+    const CHAT_TEMPLATE = '<|im_start|>system\n' + SYSTEM + '<|im_end|>\n<|im_start|>user\n{USER}<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n';
+
+    const answers = {};
+    for (const [qid, q] of Object.entries(questions)) {
+      const type = q.type;
+      let optTexts = [];
+      let optKeys = [];
+
+      if (type === 'noul') {
+        optKeys = ['true', 'false'];
+        optTexts = ['true: The proposition is true.', 'false: The proposition is false.'];
+      } else if (type === 'choice') {
+        const criteria = q.criteria || {};
+        optKeys = Array.isArray(criteria) ? criteria : Object.keys(criteria);
+        optTexts = optKeys.map(k => {
+          const desc = typeof criteria[k] === 'string' ? criteria[k] : k;
+          return `${k}: ${desc}`;
+        });
+      } else if (type === 'score') {
+        const levels = Array.isArray(q.criteria) ? q.criteria : ['low', 'medium', 'high'];
+        optKeys = levels.map((_, i) => String(i));
+        optTexts = levels.map((lvl, i) => `${i}: ${lvl}`);
+      }
+
+      const payload = {
+        evidence: state,
+        criterion: q.instructions || (type === 'choice' ? 'Select the best matching option' : 'Evaluate proposition'),
+        options: optTexts.map((desc, i) => ({ letter: LETTERS[i], description: desc }))
+      };
+
+      const prompt = CHAT_TEMPLATE.replace('{USER}', JSON.stringify(payload));
+
+      const tokRes = await fetch(`${this.ggufUrl.replace(/\/$/, '')}/tokenize`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: prompt, add_special: false, parse_special: true })
+      });
+      if (!tokRes.ok) throw new Error('tokenize failed');
+      const { tokens } = await tokRes.json();
+
+      const t0 = performance.now();
+      const compRes = await fetch(`${this.ggufUrl.replace(/\/$/, '')}/completion`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: tokens,
+          n_predict: 1,
+          n_probs: 40,
+          temperature: 0,
+          cache_prompt: false
+        })
+      });
+      if (!compRes.ok) throw new Error('completion failed');
+      const out = await compRes.json();
+      const latencyMs = performance.now() - t0;
+
+      const top = out.completion_probabilities?.[0]?.top_logprobs || [];
+      const seen = {};
+      for (const entry of top) seen[entry.token] = entry.logprob;
+      const floor = Math.min(...Object.values(seen).concat(0)) - 2.0;
+      const logprobs = optKeys.map((_, i) => seen[LETTERS[i]] ?? floor);
+      const maxLp = Math.max(...logprobs);
+      const temp = this.temperature;
+      const weights = logprobs.map(lp => Math.exp((lp - maxLp) / temp));
+      const sumW = weights.reduce((a, b) => a + b, 0) || 1;
+      const probs = {};
+      optKeys.forEach((k, i) => { probs[k] = weights[i] / sumW; });
+
+      if (type === 'noul') {
+        const probTrue = probs['true'] ?? 0.5;
+        answers[qid] = {
+          type: 'noul',
+          noul: Number(probTrue.toFixed(4)),
+          passed: probTrue >= 0.5,
+          confidence: Number(Math.max(probTrue, 1 - probTrue).toFixed(4)),
+          latencyMs
+        };
+      } else if (type === 'choice') {
+        const winner = optKeys.reduce((best, k) => probs[k] > probs[best] ? k : best, optKeys[0]);
+        answers[qid] = {
+          type: 'choice',
+          choice: winner,
+          probabilities: probs,
+          confidence: Number(probs[winner].toFixed(4)),
+          latencyMs
+        };
+      } else if (type === 'score') {
+        const scoreVal = optKeys.reduce((acc, k, i) => acc + i * probs[k], 0);
+        answers[qid] = {
+          type: 'score',
+          score: Number(scoreVal.toFixed(2)),
+          probabilities: probs,
+          confidence: Number(Math.max(...Object.values(probs)).toFixed(4)),
+          latencyMs
+        };
+      }
+    }
+    return answers;
   }
 
   _evaluateSemIf(state, questions, options = {}) {
